@@ -7,8 +7,8 @@ import { connectDB } from "./src/lib/db.js";
 import cookieParser from "cookie-parser";
 const app = express();
 app.use(express.json());
+app.use(cors({ origin: process.env.CLIENT_URL, credentials: true }));
 app.use(cookieParser())
-app.use(cors());
 app.use("/api/auth", authRouter);
 app.use("/api/messages", messageRouter);
 const PORT = process.env.PORT || 3000;
