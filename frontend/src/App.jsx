@@ -16,13 +16,22 @@ const App = () => {
   , [checkAuth]);
   if(isChecking) return <PageLoader />
   return (
-    <div className='min-h-screen flex justify-center items-center overflow-hidden '>
+    <div className="min-h-screen bg-fuchsia-200 flex justify-center items-center overflow-hidden ">
       <Routes>
-        <Route path="/" element={authUser ? <ChatPages /> : <Navigate to={"/login"} />} />
-        <Route path="/signup" element={!authUser ? <SignUpPage />: <Navigate to={"/"}/>} />
-        <Route path="/login" element={!authUser ? <LoginPage /> : <Navigate to={"/"}/>}  />
+        <Route
+          path="/"
+          element={authUser ? <ChatPages /> : <Navigate to={"/login"} />}
+        />
+        <Route
+          path="/signup"
+          element={!authUser ? <SignUpPage /> : <Navigate to={"/"} />}
+        />
+        <Route
+          path="/login"
+          element={!authUser ? <LoginPage /> : <Navigate to={"/"} />}
+        />
       </Routes>
-      <Toaster position='bottom-center'/>
+      <Toaster position="bottom-center" />
     </div>
   );
 }
