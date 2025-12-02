@@ -2,3 +2,32 @@
 @plugin "daisyui"{
     themes: light --default, dark --prefersdark, winter;
   }
+@property --border-angle {
+    inherits: false;
+    initial-value: 0deg;
+    syntax: '<angle>';
+}
+@keyframes border-rotate {
+  to {
+    --border-angle: 360deg;
+  }
+}
+
+.animate-rotate-border {
+  animation: border-rotate 2s linear infinite;
+}
+.auth-input-label{
+  @apply block text-sm font-medium text-fuchsia-900
+}
+.input{
+  @apply w-full bg-fuchsia-50 outline-0 text-fuchsia-950 focus:border-fuchsia-900 focus:border-2 pl-10 focus:bg-transparent 
+}
+.auth-input-icon{
+  @apply absolute left-3 top-1/2 -translate-y-1/2 z-10 text-[#721377]
+}
+.auth-btn{
+  @apply bg-fuchsia-900 w-full p-2 text-fuchsia-50 cursor-pointer hover:bg-fuchsia-500 rounded-lg
+} 
+.auth-badge{
+  @apply bg-fuchsia-900 shadow-sm text-fuchsia-50 sm:px-2 py-2 rounded-full text-sm px-1
+}
