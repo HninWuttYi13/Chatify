@@ -31,3 +31,6 @@
 .auth-badge{
   @apply bg-fuchsia-900 shadow-sm text-fuchsia-50 sm:px-2 py-2 rounded-full text-sm px-1
 }
+.contactTabSwitch{
+  @apply w-1/2  py-2 text-fuchsia-900 cursor-pointer focus:bg-fuchsia-950 focus:text-fuchsia-50 rounded-lg
+}
