@@ -90,8 +90,8 @@ export const updateProfile = async(req, res)=> {
       {profilePic: uploadResponse.secure_url},
       {new: true}
     )
-    return res.status(200).json(updatedUser)
+   res.status(200).json(updatedUser)
   } catch (error) {
-    return res.status(500).json({message: "Internal server error"})
+  res.status(500).json({message: "Internal server error"})
   }
 }
