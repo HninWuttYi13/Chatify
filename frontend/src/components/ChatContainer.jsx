@@ -1,25 +1,29 @@
 import { ChatHeader } from './ChatHeader';
-
+import AvatarProfile from "../image/avatar_profile.jpg"
 import { useChatStore } from "../store/useChatStore";
 import { useAuthStore } from '../store/useAuthStore';
 import NoChatContainer from './NoChatContainer';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import MessageInputBox from './MessageInputBox';
 import MessageLoading from './MessageLoading';
 const ChatContainer = () => {
   const {selectedUser, messages, getMessageByUserId,   isMessageLoading} = useChatStore();
   const {authUser} = useAuthStore();
+  const bottomRef = useRef();
   useEffect(()=> {
     getMessageByUserId(selectedUser._id)
-  }, [selectedUser, getMessageByUserId])
+  }, [selectedUser, getMessageByUserId]);
+  useEffect(()=> {
+    bottomRef.current?.scrollIntoView({behavior: "smooth"})
+  },[ messages])
   return (
     <div className="flex flex-col">
       {/* Header user name*/}
       <ChatHeader />
       {/* Body chat message*/}
-      <div className="px-3 overflow-y-auto h-[calc(100vh-9rem)]">
+      <div className="px-3 overflow-y-auto h-[calc(100vh-10rem)]">
         {messages.length > 0 && !isMessageLoading ? (
-          <div >
+          <div>
             {messages.map((msg) => (
               <div
                 key={msg._id}
@@ -32,8 +36,8 @@ const ChatContainer = () => {
                     <img
                       src={
                         msg.senderId === authUser._id
-                          ? authUser.profilePic
-                          : selectedUser.profilePic
+                          ? authUser.profilePic || AvatarProfile
+                          : selectedUser.profilePic || AvatarProfile
                       }
                     />
                   </div>
@@ -65,17 +69,17 @@ const ChatContainer = () => {
                 </div>
               </div>
             ))}
+            <div ref={bottomRef}></div>
           </div>
         ) : isMessageLoading ? (
-          <MessageLoading/>
-        ):(
+          <MessageLoading />
+        ) : (
           <NoChatContainer name={selectedUser.fullName} />
         )}
       </div>
       {/* footer  text message*/}
-      
-        <MessageInputBox />
-     
+
+      <MessageInputBox />
     </div>
   );
 }

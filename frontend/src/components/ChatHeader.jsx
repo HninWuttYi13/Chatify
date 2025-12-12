@@ -23,7 +23,7 @@ export function ChatHeader() {
         <div className="avatar avatar-online">
           <div className="w-12 rounded-full">
             <img
-              src={AvatarProfile || selectedUser.profilePic}
+              src={selectedUser?.profilePic || AvatarProfile}
               alt={selectedUser.fullName}
             />
           </div>

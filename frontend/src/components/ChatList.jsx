@@ -16,7 +16,7 @@ export function ChatList() {
       {chatUsers.map((chatUser) => (
         <div
           key={chatUser._id}
-          className="flex gap-2 items-center p-3 bg-fuchsia-900/10 rounded-lg cursor-pointer hover:bg-fuchsia-300 transition-colors"
+          className="flex gap-2 items-center p-3 bg-fuchsia-950/10 rounded-lg cursor-pointer hover:bg-fuchsia-300 transition-colors"
           onClick={() => setSelectedUser(chatUser)}
         >
           <div className="avatar avatar-online">
@@ -27,7 +27,7 @@ export function ChatList() {
               />
             </div>
           </div>
-          <p className="text-fuchsia-50 text-lg font-bold ">
+          <p className="text-fuchsia-950 text-lg font-bold ">
             {chatUser.fullName}
           </p>
         </div>

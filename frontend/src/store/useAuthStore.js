@@ -10,7 +10,6 @@ export const useAuthStore = create((set) => ({
   checkAuth: async () => {
     try {
       const res = await axiosConstant.get("api/auth/check");
-      console.log(res);
       set({ authUser: res.data });
     } catch (error) {
       console.log(error);
@@ -20,10 +19,9 @@ export const useAuthStore = create((set) => ({
     }
   },
   signup: async (data) => {
+    set({ isSigningUp: true });
     try {
-      set({ isSigningUp: true });
-
-      const res = await axiosConstant.post("api/auth/signup", data);
+    const res = await axiosConstant.post("api/auth/signup", data);
 
       set({ authUser: res.data });
       toast.success("Account created successfully");
