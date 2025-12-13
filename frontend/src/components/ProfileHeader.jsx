@@ -3,8 +3,8 @@ import ProfilePhoto from "../image/avatar_profile.jpg"
 import { useAuthStore } from "../store/useAuthStore";
 import { useChatStore } from "../store/useChatStore";
 import { useRef, useState } from "react";
-import clickSoundEffect from "/Sounds/computer-mouse-click.mp3"
-const mouseClickSound = new Audio(clickSoundEffect)
+import { clickSound } from "./mouseClickSound";
+const uploadedProfileImageSound = new Audio("/Sounds/uploadedVoice.mp3")
 export function ProfileHeader() {
    const { authUser, logout, updateProfile } = useAuthStore();
    const {  SoundEnabled, toggleSound } = useChatStore();
@@ -18,7 +18,12 @@ export function ProfileHeader() {
     reader.onloadend = (async()=> {
       const base64Image = reader.result;
       setSelectedProfile(base64Image);
-      await updateProfile({profilePic: base64Image})
+     
+      await updateProfile({profilePic: base64Image});
+      if (SoundEnabled) {
+        uploadedProfileImageSound.currentTime = 0;
+        uploadedProfileImageSound.play();
+      }
     })
    }
   return (
@@ -27,7 +32,10 @@ export function ProfileHeader() {
         <div className="avatar avatar-online">
           <button
             className="overflow-hidden size-14 relative rounded-full"
-            onClick={() => fileInputRef.current.click()}
+            onClick={() => {
+              if(SoundEnabled) clickSound();
+              fileInputRef.current.click();
+            }}
           >
             <img
               src={selectedProfile || authUser.profilePic || ProfilePhoto}
@@ -58,15 +66,15 @@ export function ProfileHeader() {
         <LogOut
           size={20}
           className="cursor-pointer hover:text-fuchsia-300 transition-colors"
-          onClick={logout}
+          onClick={()=> {
+            if(SoundEnabled) clickSound();
+            logout()
+          }}
         />
         <button className="cursor-pointer hover:text-fuchsia-300 transition-colors"
         onClick={()=> {
-          mouseClickSound.currentTime = 0;
-          mouseClickSound
-            .play()
-            .catch((error) => console.log("Audio play failed", error));
-          toggleSound()
+          if(SoundEnabled) clickSound();
+          toggleSound();
           }}
         >
           {SoundEnabled ? <Volume2 size={20}/> : <VolumeOff size={20}/> }

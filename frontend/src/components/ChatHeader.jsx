@@ -1,9 +1,10 @@
 import { useEffect } from "react";
 import AvatarProfile from "../image/avatar_profile.jpg";
 import { useChatStore } from "../store/useChatStore";
-import { ArrowLeft, WindArrowDown } from "lucide-react";
+import { ArrowLeft} from "lucide-react";
+import { clickSound } from "./mouseClickSound";
 export function ChatHeader() {
-  const { selectedUser, setSelectedUser } = useChatStore();
+  const { selectedUser, setSelectedUser, SoundEnabled } = useChatStore();
   useEffect(() => {
     const handleEscKey = (event) => {
       if (event.key === "Escape") setSelectedUser(null);
@@ -17,7 +18,10 @@ export function ChatHeader() {
       <ArrowLeft
         className="text-fuchsia-50 cursor-pointer"
         size={28}
-        onClick={() => setSelectedUser(null)}
+        onClick={() => {
+          if(SoundEnabled) clickSound();
+          setSelectedUser(null)
+        }}
       />
       <div className="flex items-center gap-3">
         <div className="avatar avatar-online">
