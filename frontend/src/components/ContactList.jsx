@@ -2,8 +2,9 @@ import { useEffect } from "react";
 import ProfilePhoto from "../image/avatar_profile.jpg";
 import { useChatStore } from "../store/useChatStore";
 import UserLoadingState from "./UserLoadingState";
+import { clickSound } from "./mouseClickSound";
 export function ContactList() {
-  const { isUserLoading, setSelectedUser, allContacts, getAllContacts } =
+  const { isUserLoading, setSelectedUser, allContacts, getAllContacts, SoundEnabled } =
     useChatStore();
   useEffect(() => {
     getAllContacts();
@@ -15,7 +16,10 @@ export function ContactList() {
         <div
           key={contactUser._id}
           className="flex gap-2 items-center p-3 bg-fuchsia-900/10 rounded-sm cursor-pointer hover:bg-fuchsia-300 transition-colors"
-          onClick={() => setSelectedUser(contactUser)}
+          onClick={() => {
+            if(SoundEnabled) clickSound();
+            setSelectedUser(contactUser)
+          }}
         >
           <div className="avatar avatar-online">
             <div className="w-12 rounded-full">

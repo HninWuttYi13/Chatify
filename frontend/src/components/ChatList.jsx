@@ -1,10 +1,11 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import ProfilePhoto from "../image/avatar_profile.jpg";
 import { useChatStore } from "../store/useChatStore";
 import UserLoadingState from "./UserLoadingState";
 import NoChatFound from "./NoChatFound";
+import { clickSound } from "./mouseClickSound";
 export function ChatList() {
-  const { getMyChatPartners, chatUsers, isUserLoading, setSelectedUser } =
+  const { getMyChatPartners, chatUsers, isUserLoading, setSelectedUser, SoundEnabled } =
     useChatStore();
   useEffect(() => {
     getMyChatPartners();
@@ -17,7 +18,10 @@ export function ChatList() {
         <div
           key={chatUser._id}
           className="flex gap-2 items-center p-3 bg-fuchsia-950/10 rounded-lg cursor-pointer hover:bg-fuchsia-300 transition-colors"
-          onClick={() => setSelectedUser(chatUser)}
+          onClick={() => {
+            if(SoundEnabled) clickSound();
+            setSelectedUser(chatUser)
+          }}
         >
           <div className="avatar avatar-online">
             <div className="w-12 rounded-full">

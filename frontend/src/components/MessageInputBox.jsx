@@ -2,7 +2,8 @@ import { Image, SendIcon, X } from "lucide-react";
 import { useRef, useState } from "react";
 import { useChatStore } from "../store/useChatStore";
 import toast from "react-hot-toast";
-const sound = new Audio("/Sounds/sendMessage.mp3");
+import { clickSound } from "./mouseClickSound";
+const sound = new Audio("/Sounds/keystroke1.mp3");
 const MessageInputBox = () => {
   const textRef = useRef();
   const imageRef = useRef(null);
@@ -50,7 +51,10 @@ const MessageInputBox = () => {
               />
               <button
                 type="button"
-                onClick={() => setImagePreview(null)}
+                onClick={() => {
+                  if(SoundEnabled)clickSound();
+                  setImagePreview(null)
+                }}
                 className="absolute -top-1 -right-1 bg-white rounded-full p-0.5 shadow cursor-pointer"
               >
                 <X size={14} className="text-fuchsia-900" />
@@ -67,7 +71,10 @@ const MessageInputBox = () => {
           />
         </div>
         <div>
-          <button type="button" onClick={() => imageRef.current.click()}>
+          <button type="button" onClick={() => {
+            if(SoundEnabled) clickSound();
+            imageRef.current.click();
+          }}>
             <Image
               size={25}
               className=" text-fuchsia-950  hover:text-fuchsia-600 cursor-pointer"
