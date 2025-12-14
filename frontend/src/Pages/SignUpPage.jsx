@@ -131,7 +131,7 @@ const SignUpPage = () => {
           </div>
 
           {/* RIGHT COLUMN */}
-          <div className="md:w-1/2 md:p-8 pt-0 pb-8  items-center justify-center">
+          <div className="responsive-layout md:w-1/2 md:p-8 pt-0 pb-8  items-center justify-center">
             <div>
               <p className="mt-5 text-2xl text-fuchsia-900 font-bold text-center">
                 "Where conversations feel alive"
