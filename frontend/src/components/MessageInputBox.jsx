@@ -35,7 +35,7 @@ const MessageInputBox = () => {
     reader.onloadend = () => setImagePreview(reader.result);
   };
   return (
-    <div className="h-14 px-2  flex  items-center space-x-1  ">
+    <div className="mt-3 h-12 px-2  flex  items-center space-x-1  ">
       <form
         className="flex items-center w-full gap-2 mt-3"
         onSubmit={handleSendMessage}
@@ -66,7 +66,7 @@ const MessageInputBox = () => {
           <input
             type="text"
             placeholder="Text your message"
-            className="flex-1 bg-transparent outline-none text-fuchsia-950 sm:py-2 py-0"
+            className="flex-1 bg-transparent outline-none text-fuchsia-950 py-1"
             ref={textRef}
           />
         </div>

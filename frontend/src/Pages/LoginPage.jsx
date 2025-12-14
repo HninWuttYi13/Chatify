@@ -79,7 +79,11 @@ const LoginPage = () => {
 
                 {/* Button */}
                 <button className="auth-btn" type="submit">
-                  {isLogin ? <LoaderIcon className="text-center animate-spin w-full h-5"/>: "Sign Up"}
+                  {isLogin ? (
+                    <LoaderIcon className="text-center animate-spin w-full h-5" />
+                  ) : (
+                    "Sign Up"
+                  )}
                 </button>
               </form>
               <p className="text-center mt-4 text-fuchsia-400 text-sm">
@@ -95,7 +99,7 @@ const LoginPage = () => {
           </div>
 
           {/* RIGHT COLUMN */}
-          <div className="md:w-1/2 md:p-8 pt-0 pb-8  items-center justify-center">
+          <div className="responsive-layout md:w-1/2 md:p-8 pt-0 pb-8  items-center justify-center">
             <div>
               <p className="mt-5 text-2xl text-fuchsia-900 font-bold text-center">
                 "Where conversations feel alive"

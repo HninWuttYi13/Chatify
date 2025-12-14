@@ -16,7 +16,7 @@ const App = () => {
   , [checkAuth]);
   if(isChecking) return <PageLoader />
   return (
-    <div className="min-h-screen bg-fuchsia-200 flex justify-center items-center overflow-hidden ">
+    <div className="min-h-screen bg-fuchsia-200 relative flex items-center justify-center overflow-hidden ">
       <Routes>
         <Route
           path="/"

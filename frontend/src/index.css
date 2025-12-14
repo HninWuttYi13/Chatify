@@ -34,3 +34,11 @@
 .contactTabSwitch{
   @apply w-1/2  py-2 cursor-pointer  rounded-lg
 }
+.responsive-layout{
+  display:none
+}
+@media screen and (min-width: 768px) {
+  .responsive-layout {
+    display: block;
+  }
+}
