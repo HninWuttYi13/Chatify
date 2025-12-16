@@ -1,26 +1,89 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import ProfilePhoto from "../image/avatar_profile.jpg";
 import { useChatStore } from "../store/useChatStore";
 import UserLoadingState from "./UserLoadingState";
 import NoChatFound from "./NoChatFound";
 import { clickSound } from "./mouseClickSound";
+import { Trash, Shield } from "lucide-react";
+import Confirmation from "./Confirmation";
 export function ChatList() {
-  const { getMyChatPartners, chatUsers, isUserLoading, setSelectedUser, SoundEnabled } =
-    useChatStore();
+  const {
+    getMyChatPartners,
+    chatUsers,
+    isUserLoading,
+    setSelectedUser,
+    SoundEnabled,
+    confirmDelete,
+    setConfirmDelete,
+  } = useChatStore();
+  const [menuContext, setMenuContext] = useState(null);
   useEffect(() => {
     getMyChatPartners();
   }, [getMyChatPartners]);
+  useEffect(() => {
+    const closeMenuContext = () => setMenuContext(null);
+    window.addEventListener("click", closeMenuContext);
+    return () => window.removeEventListener("click", closeMenuContext);
+  }, []);
   if (isUserLoading) return <UserLoadingState />;
   if (chatUsers.length === 0) return <NoChatFound />;
+  const showingMenuContext = (e, chatUser) => {
+    e.preventDefault();
+    setMenuContext({
+      x: e.clientX,
+      y: e.clientY,
+      chatUser,
+    });
+  };
+  
+  if(confirmDelete) return <Confirmation/>
+  
   return (
     <div className="flex-1 overflow-y-auto px-2 space-y-2">
+      {menuContext && (
+        <div
+          className="fixed z-50 bg-fuchsia-100 text-fuchsia-950  rounded-md shadow-lg"
+          style={{
+            top: menuContext.y,
+            left: menuContext.x,
+          }}
+        >
+          <ul className="py-1">
+            <li>
+              <button
+                className="flex items-center gap-2 px-4 py-2 text-red-500 w-full cursor-pointer hover:text-red-800"
+                onClick={() => {
+                  if(SoundEnabled) clickSound()
+                  setConfirmDelete(menuContext.chatUser);
+                  setMenuContext(null);
+                }}
+              >
+                <Trash size={18} />
+                Delete Chat
+              </button>
+            </li>
+            <hr className="border-fuchsia-300" />
+            <li>
+              <button className="flex items-center gap-2 px-4 py-2 text-fuchsia-950 hover:text-fuchsia-500 w-full cursor-pointer">
+                <Shield size={18} />
+                Block
+              </button>
+            </li>
+          </ul>
+        </div>
+      )}
+
       {chatUsers.map((chatUser) => (
         <div
           key={chatUser._id}
           className="flex gap-2 items-center p-3 bg-fuchsia-950/10 rounded-lg cursor-pointer hover:bg-fuchsia-300 transition-colors"
           onClick={() => {
+            if (SoundEnabled) clickSound();
+            setSelectedUser(chatUser);
+          }}
+          onContextMenu={(e) => {
             if(SoundEnabled) clickSound();
-            setSelectedUser(chatUser)
+            showingMenuContext(e, chatUser);
           }}
         >
           <div className="avatar avatar-online">

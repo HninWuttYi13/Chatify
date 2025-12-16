@@ -10,6 +10,7 @@ export const useChatStore = create((set, get) => ({
   selectedUser: null,
   isUserLoading: false,
   isMessageLoading: false,
+  confirmDelete: null,
   SoundEnabled: JSON.parse(localStorage.getItem("SoundEnabled")) === true,
   toggleSound: ()=> {
     localStorage.setItem("SoundEnabled", !get().SoundEnabled);
@@ -72,5 +73,22 @@ export const useChatStore = create((set, get) => ({
       set({messages});
       toast.error(error?.response?.data?.message)
     }
-  }
+  },
+  deleteChatMessageForMe : async(chatPartnerId)=> {
+    const {chatUsers, selectedUser, messages} = get()
+   try {
+      await axiosConstant.delete(`/api/messages/chat/${chatPartnerId}`);
+    const remainChatPartners = chatUsers.filter(chatUser=> chatUser._id !== chatPartnerId);
+     set({
+      chatUsers: remainChatPartners,
+      messages: selectedUser?._id === chatPartnerId ? [] : messages,
+      selectedUser: selectedUser?._id === chatPartnerId ? null : selectedUser
+     })
+    toast.success("Chat is deleted successfully")
+   } catch (error) {
+    set({chatUsers});
+    toast.error(error?.response?.data?.message || "Failed to delete chat")
+   }
+  },
+  setConfirmDelete: (chatUser)=>set({confirmDelete: chatUser})
 }));
