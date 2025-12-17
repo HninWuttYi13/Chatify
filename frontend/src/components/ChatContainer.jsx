@@ -1,21 +1,32 @@
-import { ChatHeader } from './ChatHeader';
-import AvatarProfile from "../image/avatar_profile.jpg"
+import { ChatHeader } from "./ChatHeader";
+import AvatarProfile from "../image/avatar_profile.jpg";
 import { useChatStore } from "../store/useChatStore";
-import { useAuthStore } from '../store/useAuthStore';
-import NoChatContainer from './NoChatContainer';
-import { useEffect, useRef } from 'react';
-import MessageInputBox from './MessageInputBox';
-import MessageLoading from './MessageLoading';
+import { useAuthStore } from "../store/useAuthStore";
+import NoChatContainer from "./NoChatContainer";
+import { useEffect, useRef } from "react";
+import MessageInputBox from "./MessageInputBox";
+import MessageLoading from "./MessageLoading";
+import ViewImage from "./ViewImage";
+import { clickSound } from "./mouseClickSound";
 const ChatContainer = () => {
-  const {selectedUser, messages, getMessageByUserId,   isMessageLoading} = useChatStore();
-  const {authUser} = useAuthStore();
+  const {
+    selectedUser,
+    messages,
+    getMessageByUserId,
+    isMessageLoading,
+    viewImage,
+    setViewImage,
+    SoundEnabled
+  } = useChatStore();
+  const { authUser } = useAuthStore();
   const bottomRef = useRef();
-  useEffect(()=> {
-    getMessageByUserId(selectedUser._id)
+  useEffect(() => {
+    getMessageByUserId(selectedUser._id);
   }, [selectedUser, getMessageByUserId]);
-  useEffect(()=> {
-    bottomRef.current?.scrollIntoView({behavior: "smooth"})
-  },[ messages])
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+  if(viewImage) return <ViewImage/>
   return (
     <div className="flex flex-col">
       {/* Header user name*/}
@@ -62,7 +73,11 @@ const ChatContainer = () => {
                     <img
                       src={msg.image}
                       alt="Shared"
-                      className="rounded-lg h-48 object-cover"
+                      className="rounded-lg h-48 object-cover cursor-pointer"
+                      onClick={()=>{
+                        if(SoundEnabled) clickSound();
+                        setViewImage(msg.image);
+                      }}
                     />
                   )}
                   {msg.text && <p className="mt-2">{msg.text}</p>}
@@ -82,6 +97,6 @@ const ChatContainer = () => {
       <MessageInputBox />
     </div>
   );
-}
+};
 
-export default ChatContainer
+export default ChatContainer;
