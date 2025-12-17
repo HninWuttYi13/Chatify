@@ -11,7 +11,7 @@ const Confirmation = () => {
         </h3>
 
         <p className="text-md text-fuchsia-950 mb-5">
-          Are you sure you want to delete chat with{" "}
+          Are you sure you want to delete all chat history with{" "}
           <span className="font-semibold">{confirmDelete.fullName}</span>? This
           action cannot be undone.
         </p>

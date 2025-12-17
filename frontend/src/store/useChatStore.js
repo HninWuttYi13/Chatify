@@ -11,6 +11,8 @@ export const useChatStore = create((set, get) => ({
   isUserLoading: false,
   isMessageLoading: false,
   confirmDelete: null,
+  viewImage: null,
+  setViewImage: (img)=> set({viewImage: img}),
   SoundEnabled: JSON.parse(localStorage.getItem("SoundEnabled")) === true,
   toggleSound: ()=> {
     localStorage.setItem("SoundEnabled", !get().SoundEnabled);
