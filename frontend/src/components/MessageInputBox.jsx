@@ -39,7 +39,7 @@ const MessageInputBox = () => {
         className="flex items-center w-full gap-2 mt-3"
         onSubmit={handleSendMessage}
       >
-        <div className="flex gap-2 sm:flex-row flex-col flex-1 bg-fuchsia-50 border sm:rounded-full rounded-lg px-3 py-1">
+        <div className="flex gap-2 sm:flex-row flex-col flex-1 bg-fuchsia-50 border sm:rounded-full rounded-lg px-3 md:py-1 py-2">
           {/* IMAGE PREVIEW INSIDE THE INPUT */}
           {imagePreview && (
             <div className="relative w-12 h-12 shrink-0">
