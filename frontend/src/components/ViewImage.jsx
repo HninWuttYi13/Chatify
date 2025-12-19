@@ -24,7 +24,7 @@ const ViewImage = () => {
         <img
           src={viewImage}
           alt="photo"
-          className="sm:max-w-2xl w-xl h-auto rounded-xl"
+          className="sm:max-w-2xl max-h-[600px] rounded-xl"
         />
         <div className="absolute top-2 right-3 flex items-center gap-2">
           <div
