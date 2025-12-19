@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import ProfilePhoto from "../image/avatar_profile.jpg";
 import { useChatStore } from "../store/useChatStore";
 import UserLoadingState from "./UserLoadingState";
@@ -6,6 +6,8 @@ import NoChatFound from "./NoChatFound";
 import { clickSound } from "./mouseClickSound";
 import { Trash, Shield } from "lucide-react";
 import Confirmation from "./Confirmation";
+import { useContextMenu } from "./useContextMenu";
+import { TouchScreenContextMenu } from "./TouchScreenContextMenu";
 export function ChatList() {
   const {
     getMyChatPartners,
@@ -16,36 +18,24 @@ export function ChatList() {
     confirmDelete,
     setConfirmDelete,
   } = useChatStore();
-  const [menuContext, setMenuContext] = useState(null);
   useEffect(() => {
     getMyChatPartners();
   }, [getMyChatPartners]);
-  useEffect(() => {
-    const closeMenuContext = () => setMenuContext(null);
-    window.addEventListener("click", closeMenuContext);
-    return () => window.removeEventListener("click", closeMenuContext);
-  }, []);
+  const { menu, openMenu, closeMenu } = useContextMenu();
+  const { handleTouchStart, handleTouchEnd } = TouchScreenContextMenu();
   if (isUserLoading) return <UserLoadingState />;
   if (chatUsers.length === 0) return <NoChatFound />;
-  const showingMenuContext = (e, chatUser) => {
-    e.preventDefault();
-    setMenuContext({
-      x: e.clientX,
-      y: e.clientY,
-      chatUser,
-    });
-  };
-  
-  if(confirmDelete) return <Confirmation/>
-  
+
+  if (confirmDelete) return <Confirmation />;
+
   return (
     <div className="flex-1 overflow-y-auto px-2 space-y-2">
-      {menuContext && (
+      {menu && (
         <div
           className="fixed z-50 bg-fuchsia-100 text-fuchsia-950  rounded-md shadow-lg"
           style={{
-            top: menuContext.y,
-            left: menuContext.x,
+            top: menu.y,
+            left: menu.x,
           }}
         >
           <ul className="py-1">
@@ -53,9 +43,9 @@ export function ChatList() {
               <button
                 className="flex items-center gap-2 px-4 py-2 text-red-500 w-full cursor-pointer hover:text-red-800"
                 onClick={() => {
-                  if(SoundEnabled) clickSound()
-                  setConfirmDelete(menuContext.chatUser);
-                  setMenuContext(null);
+                  if (SoundEnabled) clickSound();
+                  setConfirmDelete(menu.payload);
+                  closeMenu();
                 }}
               >
                 <Trash size={18} />
@@ -82,9 +72,11 @@ export function ChatList() {
             setSelectedUser(chatUser);
           }}
           onContextMenu={(e) => {
-            if(SoundEnabled) clickSound();
-            showingMenuContext(e, chatUser);
+            if (SoundEnabled) clickSound();
+            openMenu(e, chatUser);
           }}
+          onTouchStart={(e) => handleTouchStart(e, chatUser)}
+          onTouchEnd={handleTouchEnd}
         >
           <div className="avatar avatar-online">
             <div className="w-12 rounded-full">
