@@ -8,7 +8,9 @@ import { Trash, Shield } from "lucide-react";
 import Confirmation from "./Confirmation";
 import { useContextMenu } from "./useContextMenu";
 import { TouchScreenContextMenu } from "./TouchScreenContextMenu";
+import { useAuthStore } from "../store/useAuthStore";
 export function ChatList() {
+  const { onlineUsers } = useAuthStore();
   const {
     getMyChatPartners,
     chatUsers,
@@ -78,7 +80,13 @@ export function ChatList() {
           onTouchStart={(e) => handleTouchStart(e, chatUser)}
           onTouchEnd={handleTouchEnd}
         >
-          <div className="avatar avatar-online">
+          <div
+            className={`avatar ${
+              onlineUsers.includes(chatUser._id)
+                ? "avatar-online"
+                : "avatar-offline"
+            }`}
+          >
             <div className="w-12 rounded-full">
               <img
                 src={chatUser.profilePic || ProfilePhoto}

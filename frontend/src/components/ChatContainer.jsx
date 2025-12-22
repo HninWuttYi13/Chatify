@@ -8,7 +8,7 @@ import MessageInputBox from "./MessageInputBox";
 import MessageLoading from "./MessageLoading";
 import ViewImage from "./ViewImage";
 import { clickSound } from "./mouseClickSound";
-import { normalizeDate, getDateLabel } from "./timeStamps";
+import { normalizeDate, getDateLabel } from "./timeStamps.js";
 const ChatContainer = () => {
   const {
     selectedUser,
@@ -41,10 +41,10 @@ const ChatContainer = () => {
               const showDate =
                 !prevMessage ||
                 normalizeDate(new Date(prevMessage.createdAt)).getTime() !==
-                  normalizeDate(new Date(msg.createdAt)).getTime();
-
+                normalizeDate(new Date(msg.createdAt)).getTime();
+              
               return (
-                <div>
+                <div key={msg._id}>
                   {showDate && (
                     <div className="text-md text-fuchsia-950 text-center font-bold">
                       {getDateLabel(msg.createdAt)}
