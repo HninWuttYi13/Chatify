@@ -3,9 +3,11 @@ import ProfilePhoto from "../image/avatar_profile.jpg";
 import { useChatStore } from "../store/useChatStore";
 import UserLoadingState from "./UserLoadingState";
 import { clickSound } from "./mouseClickSound";
+import { useAuthStore } from "../store/useAuthStore";
 export function ContactList() {
   const { isUserLoading, setSelectedUser, allContacts, getAllContacts, SoundEnabled } =
     useChatStore();
+    const {onlineUsers } = useAuthStore();
   useEffect(() => {
     getAllContacts();
   }, [getAllContacts]);
@@ -17,11 +19,17 @@ export function ContactList() {
           key={contactUser._id}
           className="flex gap-2 items-center p-3 bg-fuchsia-900/10 rounded-sm cursor-pointer hover:bg-fuchsia-300 transition-colors"
           onClick={() => {
-            if(SoundEnabled) clickSound();
-            setSelectedUser(contactUser)
+            if (SoundEnabled) clickSound();
+            setSelectedUser(contactUser);
           }}
         >
-          <div className="avatar avatar-online">
+          <div
+            className={`avatar ${
+              onlineUsers.includes(contactUser._id)
+                ? "avatar-online"
+                : "avatar-offline"
+            }`}
+          >
             <div className="w-12 rounded-full">
               <img
                 src={contactUser.profilePic || ProfilePhoto}

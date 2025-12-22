@@ -6,7 +6,7 @@ import { useRef, useState } from "react";
 import { clickSound } from "./mouseClickSound";
 const uploadedProfileImageSound = new Audio("/Sounds/uploadedVoice.mp3")
 export function ProfileHeader() {
-   const { authUser, logout, updateProfile } = useAuthStore();
+   const { authUser, logout, updateProfile, onlineUsers } = useAuthStore();
    const {  SoundEnabled, toggleSound } = useChatStore();
    const [selectedProfile, setSelectedProfile ] = useState(null);
    const fileInputRef = useRef(null);
@@ -29,11 +29,17 @@ export function ProfileHeader() {
   return (
     <div className="flex items-center justify-between bg-fuchsia-950 py-8 px-4 rounded-br-4xl  h-30">
       <div className="flex items-center gap-2 relative group">
-        <div className="avatar avatar-online">
+        <div
+          className={`avatar ${
+            onlineUsers.includes(authUser._id)
+              ? "avatar-online"
+              : "avatar-offline"
+          }`}
+        >
           <button
             className="overflow-hidden size-14 relative rounded-full"
             onClick={() => {
-              if(SoundEnabled) clickSound();
+              if (SoundEnabled) clickSound();
               fileInputRef.current.click();
             }}
           >
@@ -59,25 +65,28 @@ export function ProfileHeader() {
 
         <div className="text-fuchsia-50">
           <p className="font-bold text-lg">{authUser.fullName}</p>
-          <p className="text-xs">Online</p>
+          <p className="text-sm">
+            {onlineUsers.includes(authUser._id) ? "online" : "offline"}
+          </p>
         </div>
       </div>
       <div className="flex items-center gap-3 text-fuchsia-50">
         <LogOut
           size={20}
           className="cursor-pointer hover:text-fuchsia-300 transition-colors"
-          onClick={()=> {
-            if(SoundEnabled) clickSound();
-            logout()
+          onClick={() => {
+            if (SoundEnabled) clickSound();
+            logout();
           }}
         />
-        <button className="cursor-pointer hover:text-fuchsia-300 transition-colors"
-        onClick={()=> {
-          if(SoundEnabled) clickSound();
-          toggleSound();
+        <button
+          className="cursor-pointer hover:text-fuchsia-300 transition-colors"
+          onClick={() => {
+            if (SoundEnabled) clickSound();
+            toggleSound();
           }}
         >
-          {SoundEnabled ? <Volume2 size={20}/> : <VolumeOff size={20}/> }
+          {SoundEnabled ? <Volume2 size={20} /> : <VolumeOff size={20} />}
         </button>
       </div>
     </div>

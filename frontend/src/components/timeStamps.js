@@ -1,5 +1,4 @@
-export const normalizeDate = (date) =>
-  new Date(date.getFullYear(), date.getMonth(), date.getDate());
+export const normalizeDate = (date) => new Date(date.getFullYear(), date.getMonth(), date.getDate());
 export const getDateLabel = (dateString) => {
   const messageDate = new Date(dateString);
 
@@ -15,5 +14,5 @@ export const getDateLabel = (dateString) => {
     messageDate.getFullYear() === today.getFullYear()
       ? { month: "long", day: "numeric" }
       : { month: "long", day: "numeric", year: "numeric" };
-  return messageDate.toLocaleTimeString(undefined, options);
+  return messageDate.toLocaleDateString(undefined, options);
 };
