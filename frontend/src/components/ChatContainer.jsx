@@ -18,12 +18,21 @@ const ChatContainer = () => {
     viewImage,
     setViewImage,
     SoundEnabled,
+    subscribeNewMessages,
+    unsubscribeNewMessages,
   } = useChatStore();
   const { authUser } = useAuthStore();
   const bottomRef = useRef();
   useEffect(() => {
     getMessageByUserId(selectedUser._id);
-  }, [selectedUser, getMessageByUserId]);
+    subscribeNewMessages();
+    return () => unsubscribeNewMessages();
+  }, [
+    selectedUser,
+    getMessageByUserId,
+    subscribeNewMessages,
+    unsubscribeNewMessages,
+  ]);
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
@@ -41,8 +50,8 @@ const ChatContainer = () => {
               const showDate =
                 !prevMessage ||
                 normalizeDate(new Date(prevMessage.createdAt)).getTime() !==
-                normalizeDate(new Date(msg.createdAt)).getTime();
-              
+                  normalizeDate(new Date(msg.createdAt)).getTime();
+
               return (
                 <div key={msg._id}>
                   {showDate && (

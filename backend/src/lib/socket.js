@@ -35,6 +35,9 @@ io.use(socketAuthMiddleware);
  * -Showing online user
  * -Sending message in real time to the online users
  */
+export function getReceiverId(userId){
+  return userSocketMap[userId];
+}
 const userSocketMap = {}; 
 io.on("connection", (socket)=> {
   console.log("A user is connected", socket.user.fullName);
