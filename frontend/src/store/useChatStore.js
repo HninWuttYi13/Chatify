@@ -92,5 +92,22 @@ export const useChatStore = create((set, get) => ({
     toast.error(error?.response?.data?.message || "Failed to delete chat")
    }
   },
-  setConfirmDelete: (chatUser)=>set({confirmDelete: chatUser})
+  setConfirmDelete: (chatUser)=>set({confirmDelete: chatUser}),
+  subscribeNewMessages: ()=> {
+    const {selectedUser, SoundEnabled} = get();
+    const socket = useAuthStore.getState().socket;
+    socket.on("newMessages", (newMessages)=> {
+      const MessageSentFromSelectedUser = newMessages.senderId === selectedUser._id;
+      if(!MessageSentFromSelectedUser) return;
+     const currentMessages = get().messages;
+     set({messages: [...currentMessages, newMessages]});
+     const notificationSound = new Audio("/Sounds/notificationSound.mp3");
+     notificationSound.currentTime= 0;
+     if(SoundEnabled) notificationSound.play();
+    })
+  },
+  unsubscribeNewMessages: ()=> {
+    const socket = useAuthStore.getState().socket;
+    socket.off("newMessages")
+  }
 }));
