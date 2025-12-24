@@ -59,10 +59,11 @@ export const sendMessage = async (req, res) => {
       receiverId,
       text,
       image: imageUrl,
+      createdAt: new Date(),
     });
-    await newMessages.save();
     const receiverSocketId = getReceiverId(receiverId);
     io.to(receiverSocketId).emit("newMessages", newMessages);
+    await newMessages.save();
     return res.status(200).json(newMessages);
   } catch (error) {
     console.log("error sending message", error);
@@ -74,7 +75,7 @@ export const getChatPartners = async (req, res) => {
     const loggedInUserId = req.user._id;
     const messages = await Message.find({
       $or: [{ senderId: loggedInUserId }, { receiverId: loggedInUserId }],
-      deletedFor: { $ne: loggedInUserId }
+      deletedFor: { $ne: loggedInUserId },
     });
     const chatPartnersId = [
       ...new Set(
@@ -87,7 +88,6 @@ export const getChatPartners = async (req, res) => {
     ];
     const chatPartners = await User.find({
       _id: { $in: chatPartnersId },
-      
     }).select("-password");
     return res.status(200).json(chatPartners);
   } catch (error) {
