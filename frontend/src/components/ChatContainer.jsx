@@ -3,12 +3,16 @@ import AvatarProfile from "../image/avatar_profile.jpg";
 import { useChatStore } from "../store/useChatStore";
 import { useAuthStore } from "../store/useAuthStore";
 import NoChatContainer from "./NoChatContainer";
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import MessageInputBox from "./MessageInputBox";
 import MessageLoading from "./MessageLoading";
 import ViewImage from "./ViewImage";
 import { clickSound } from "./mouseClickSound";
 import { normalizeDate, getDateLabel } from "./timeStamps.js";
+import { useContextMenu } from "./useContextMenu.js";
+import { Trash } from "lucide-react";
+import ConfirmationDeleteMessage from "./ConfirmationDeleteMessage.jsx";
+import { TouchScreenContextMenu } from "./TouchScreenContextMenu.js";
 const ChatContainer = () => {
   const {
     selectedUser,
@@ -20,33 +24,79 @@ const ChatContainer = () => {
     SoundEnabled,
     subscribeNewMessages,
     unsubscribeNewMessages,
+    confirmMessageDelete,
+    setConfirmMessageDelete,
+    realTimeDeletingMessage,
+    unsubscribeDeletingMessage,
   } = useChatStore();
+  const { openMenu, closeMenu, menu } = useContextMenu();
+  const {handleTouchStart,
+    handleTouchEnd} = TouchScreenContextMenu(); 
   const { authUser } = useAuthStore();
-  const bottomRef = useRef();
   useEffect(() => {
     getMessageByUserId(selectedUser._id);
     subscribeNewMessages();
-    return () => unsubscribeNewMessages();
+    realTimeDeletingMessage();
+
+    return () => {
+      unsubscribeNewMessages();
+      unsubscribeDeletingMessage();
+    };
   }, [
     selectedUser,
     getMessageByUserId,
     subscribeNewMessages,
     unsubscribeNewMessages,
+    realTimeDeletingMessage,
+    unsubscribeDeletingMessage,
   ]);
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+
   if (viewImage) return <ViewImage />;
+  const reverseMessages = [...messages].reverse();
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col relative h-full">
+      {confirmMessageDelete && (
+        <div className="fixed inset-0 z-50 backdrop-blur-xs flex items-center justify-center">
+          <ConfirmationDeleteMessage />
+        </div>
+      )}
+      {menu && (
+        <div
+          className="fixed z-50 bg-white text-fuchsia-950  rounded-md shadow-lg"
+          style={{
+            top: menu.y,
+            left: menu.x,
+            transform: `translate(
+              ${menu.x > window.innerWidth - 160 ? "-100%" : "0"},
+              ${menu.y > window.innerHeight - 160 ? "0" : "-100%"} 
+             )`,
+          }}
+        >
+          <ul className="px-2 py-1">
+            <li>
+              <button
+                className="flex items-center gap-2 px-4 py-2 text-red-500 w-full cursor-pointer hover:text-red-800"
+                onClick={() => {
+                  if (SoundEnabled) clickSound();
+                  setConfirmMessageDelete(menu.payload);
+                  closeMenu();
+                }}
+              >
+                <Trash size={18} />
+                Delete
+              </button>
+            </li>
+          </ul>
+        </div>
+      )}
       {/* Header user name*/}
       <ChatHeader />
       {/* Body chat message*/}
-      <div className="px-3 py-2 overflow-y-auto h-[calc(100vh-10rem)]">
-        {messages.length > 0 && !isMessageLoading ? (
-          <div>
-            {messages.map((msg, index) => {
-              const prevMessage = messages[index - 1];
+      <div className="px-3 py-2 overflow-y-auto h-[calc(100vh-10rem)] flex flex-col-reverse">
+        {reverseMessages.length > 0 && !isMessageLoading ? (
+          <>
+            {reverseMessages.map((msg, index) => {
+              const prevMessage = reverseMessages[index + 1];
               const showDate =
                 !prevMessage ||
                 normalizeDate(new Date(prevMessage.createdAt)).getTime() !==
@@ -66,7 +116,7 @@ const ChatContainer = () => {
                     }`}
                   >
                     <div className="chat-image avatar">
-                      <div className="w-10 rounded-full">
+                      <div className="w-10 rounded-full responsive-layout">
                         <img
                           src={
                             msg.senderId === authUser._id
@@ -91,6 +141,12 @@ const ChatContainer = () => {
                           ? "bg-fuchsia-50 text-fuchsia-950"
                           : "bg-fuchsia-900 text-fuchsia-50"
                       }`}
+                      onContextMenu={(e) => {
+                        if (SoundEnabled) clickSound();
+                        openMenu(e, msg);
+                      }}
+                      onTouchStart={(e) => handleTouchStart(e, msg)}
+                      onTouchEnd={handleTouchEnd}
                     >
                       {msg.image && (
                         <img
@@ -109,8 +165,7 @@ const ChatContainer = () => {
                 </div>
               );
             })}
-            <div ref={bottomRef}></div>
-          </div>
+          </>
         ) : isMessageLoading ? (
           <MessageLoading />
         ) : (

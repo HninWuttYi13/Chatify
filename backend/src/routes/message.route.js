@@ -5,7 +5,8 @@ import {
   sendMessage,
   getChatPartners,
   deleteChatForMe,
-
+  deleteMessageBothUsers,
+  deleteMessageForMe
 } from "../controllers/message.controller.js";
 import { arcjetProtection } from "../middleware/arcjet.middleware.js";
 import { protectRoute } from "../middleware/auth.middleware.js";
@@ -15,6 +16,7 @@ router.get("/contacts",  getAllContacts);
 router.get("/chats",  getChatPartners);
 router.get("/:id", getMessagesByUserId);
 router.post("/send/:id" , sendMessage);
-router.delete("/chat/:id", deleteChatForMe)
-
+router.delete("/chat/:id", deleteChatForMe);
+router.delete("/message/:id", deleteMessageBothUsers);
+router.delete("/message/me/:id", deleteMessageForMe);
 export default router;
