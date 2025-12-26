@@ -1,7 +1,7 @@
 import { useChatStore } from "../store/useChatStore";
 import { clickSound } from "./mouseClickSound";
 const Confirmation = () => {
-    const { confirmDelete, setConfirmDelete, deleteChatMessageForMe, SoundEnabled } =
+    const { confirmDelete, setConfirmDelete, deleteChatConversationForMe, SoundEnabled } =
       useChatStore();
   return (
     <div className="fixed inset-0 z-50 backdrop-blur-sm  flex items-center justify-center">
@@ -32,7 +32,7 @@ const Confirmation = () => {
             className="px-4 py-2 rounded-md bg-red-600 text-white hover:bg-red-700 cursor-pointer"
             onClick={() => {
                 if(SoundEnabled) clickSound();
-              deleteChatMessageForMe(confirmDelete._id);
+              deleteChatConversationForMe(confirmDelete._id);
               setConfirmDelete(null);
             }}
           >

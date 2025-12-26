@@ -23,7 +23,7 @@ export const getMessagesByUserId = async (req, res) => {
         { senderId: myId, receiverId: otherUserId },
         { senderId: otherUserId, receiverId: myId },
       ],
-      deletedFor: { $ne: myId },
+      deletedFor: { $nin: [myId] },
     });
     res.status(200).json(messages);
   } catch (error) {
@@ -75,7 +75,7 @@ export const getChatPartners = async (req, res) => {
     const loggedInUserId = req.user._id;
     const messages = await Message.find({
       $or: [{ senderId: loggedInUserId }, { receiverId: loggedInUserId }],
-      deletedFor: { $ne: loggedInUserId },
+      deletedFor: { $nin: [loggedInUserId] },
     });
     const chatPartnersId = [
       ...new Set(
@@ -110,9 +110,64 @@ export const deleteChatForMe = async (req, res) => {
         $addToSet: { deletedFor: myId },
       }
     );
+    const mySocketId = getReceiverId(myId);
+    if (mySocketId)
+      io.to(mySocketId).emit("deletedChatHistoryForMe", chatPartnerId);
     return res.status(200).json({ message: "chat deleted successfully" });
   } catch (error) {
     console.log("delete chat error", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+export const deleteMessageBothUsers = async (req, res) => {
+  try {
+    const { id: messageId } = req.params;
+    const deleteMessage = await Message.findById(messageId);
+    if (!deleteMessage) return res.status(404).json("Message is not found");
+    await Message.updateOne(
+      { _id: messageId },
+      {
+        $addToSet: {
+          deletedFor: {
+            $each: [deleteMessage.senderId, deleteMessage.receiverId],
+          },
+        },
+      }
+    );
+    const senderSocketId = getReceiverId(deleteMessage.senderId);
+    const receiverSocketId = getReceiverId(deleteMessage.receiverId);
+    if (senderSocketId) io.to(senderSocketId).emit("messageDeleted", messageId);
+    if (receiverSocketId)
+      io.to(receiverSocketId).emit("messageDeleted", messageId);
+    return res
+      .status(200)
+      .json({ message: "Message is deleted successfully for both users" });
+  } catch (error) {
+    console.log("error for delete message", error);
+    return res.status(500).json({ message: "internal server error" });
+  }
+};
+export const deleteMessageForMe = async (req, res) => {
+  try {
+    const myId = req.user._id;
+    const { id: messageId } = req.params;
+
+    const message = await Message.findById(messageId);
+    if (!message) {
+      return res.status(404).json({ message: "Message not found" });
+    }
+
+    await Message.updateOne(
+      { _id: messageId },
+      { $addToSet: { deletedFor: myId } }
+    );
+    const mySocketId = getReceiverId(myId);
+    if(mySocketId) io.to(mySocketId).emit("messageDeleted", messageId);
+    return res.status(200).json({
+      message: "Message deleted for you",
+    });
+  } catch (error) {
+    console.log("deleteMessageForMe error", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
