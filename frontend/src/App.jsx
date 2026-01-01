@@ -1,20 +1,24 @@
-import  { useEffect } from 'react'
-import { Navigate, Route, Routes} from 'react-router';
-import ChatPages from './Pages/ChatPages';
-import LoginPage from './Pages/LoginPage';
-import SignUpPage from './Pages/SignUpPage';
-import { useAuthStore } from './store/useAuthStore.js';
-import PageLoader from './components/PageLoader.jsx';
-import {Toaster} from "react-hot-toast"
+import { useEffect } from "react";
+import { Navigate, Route, Routes } from "react-router";
+import ChatPages from "./Pages/ChatPages";
+import LoginPage from "./Pages/LoginPage";
+import SignUpPage from "./Pages/SignUpPage";
+import { useAuthStore } from "./store/useAuthStore.js";
+import PageLoader from "./components/PageLoader.jsx";
+import { Toaster } from "react-hot-toast";
+import { useChatStore } from "./store/useChatStore.js";
 const App = () => {
-
-  
-  const {authUser, isChecking, checkAuth} = useAuthStore();
-  useEffect(()=> {
+  const { authUser, isChecking, checkAuth } = useAuthStore();
+  const { subscribeNewMessages, unsubscribeNewMessages } = useChatStore();
+  useEffect(() => {
     checkAuth();
-  }
-  , [checkAuth]);
-  if(isChecking) return <PageLoader />
+    if(!authUser) return;
+    subscribeNewMessages();
+    return ()=> unsubscribeNewMessages()
+  }, [checkAuth, authUser]);
+ 
+
+  if (isChecking) return <PageLoader />;
   return (
     <div className="min-h-screen bg-fuchsia-200 relative flex items-center justify-center overflow-hidden ">
       <Routes>
@@ -34,6 +38,6 @@ const App = () => {
       <Toaster position="bottom-center" />
     </div>
   );
-}
+};
 
-export default App
+export default App;

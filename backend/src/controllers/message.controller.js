@@ -20,8 +20,9 @@ export const getMessagesByUserId = async (req, res) => {
     const { id: otherUserId } = req.params;
     const messages = await Message.find({
       $or: [
-        { senderId: myId, receiverId: otherUserId },
-        { senderId: otherUserId, receiverId: myId },
+        { senderId: myId, receiverId: otherUserId, },
+        { senderId: otherUserId, receiverId: myId, },
+        
       ],
       deletedFor: { $nin: [myId] },
     });
@@ -59,10 +60,24 @@ export const sendMessage = async (req, res) => {
       receiverId,
       text,
       image: imageUrl,
+      isRead: false,
       createdAt: new Date(),
     });
+    const sender = await User.findById(senderId).select(
+      "_id fullName profilePic"
+    );
+    const socketPayload = {
+      _id: newMessages._id,
+      senderId: sender._id,
+      senderName: sender.fullName,
+      senderProfilePic: sender.profilePic,
+      receiverId,
+      text: newMessages.text,
+      image: newMessages.image,
+      createdAt: newMessages.createdAt,
+    };
     const receiverSocketId = getReceiverId(receiverId);
-    io.to(receiverSocketId).emit("newMessages", newMessages);
+    io.to(receiverSocketId).emit("newMessages", socketPayload);
     await newMessages.save();
     return res.status(200).json(newMessages);
   } catch (error) {
@@ -70,6 +85,30 @@ export const sendMessage = async (req, res) => {
     res.status(500).json({ message: "internal server error" });
   }
 };
+export const markReadMessage = async(req, res)=> {
+  try {
+    const loggedInUserId = req.user._id;
+    const {id: otherUserId} = req.params;
+    const updateMessage = await Message.updateMany(
+    {  
+      senderId: otherUserId,
+      receiverId: loggedInUserId,
+      isRead: false
+    },
+      {
+        $set: { isRead: true },
+      }
+    
+    );
+    return res.status(200).json({
+      message: "update message as read",
+      modifiedCount: updateMessage.modifiedCount
+    })
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+}
 export const getChatPartners = async (req, res) => {
   try {
     const loggedInUserId = req.user._id;
@@ -77,6 +116,7 @@ export const getChatPartners = async (req, res) => {
       $or: [{ senderId: loggedInUserId }, { receiverId: loggedInUserId }],
       deletedFor: { $nin: [loggedInUserId] },
     });
+   
     const chatPartnersId = [
       ...new Set(
         messages.map((msg) =>
@@ -86,10 +126,23 @@ export const getChatPartners = async (req, res) => {
         )
       ),
     ];
-    const chatPartners = await User.find({
+    const users = await User.find({
       _id: { $in: chatPartnersId },
     }).select("-password");
-    return res.status(200).json(chatPartners);
+    const chatPartners = [];
+    for(const user of users){
+        const unreadCount = await Message.countDocuments({
+          senderId: user._id,
+          receiverId: loggedInUserId,
+          isRead: false
+        });
+        chatPartners.push({
+          ...user.toObject(),
+          unreadCountMessage: unreadCount
+        })
+    }
+   
+    return res.status(200).json({chatPartners});
   } catch (error) {
     console.log("error in chatPartners", error);
     res.status(500).json({ message: "internal server error" });

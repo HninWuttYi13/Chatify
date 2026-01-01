@@ -68,7 +68,7 @@ export function ChatList() {
       {chatUsers.map((chatUser) => (
         <div
           key={chatUser._id}
-          className="flex gap-2 items-center p-3 bg-fuchsia-950/10 rounded-lg cursor-pointer hover:bg-fuchsia-300 transition-colors"
+          className="flex gap-2 items-center justify-between p-3 bg-fuchsia-950/10 rounded-lg cursor-pointer hover:bg-fuchsia-300 transition-colors"
           onClick={() => {
             if (SoundEnabled) clickSound();
             setSelectedUser(chatUser);
@@ -80,23 +80,30 @@ export function ChatList() {
           onTouchStart={(e) => handleTouchStart(e, chatUser)}
           onTouchEnd={handleTouchEnd}
         >
-          <div
-            className={`avatar ${
-              onlineUsers.includes(chatUser._id)
-                ? "avatar-online"
-                : "avatar-offline"
-            }`}
-          >
-            <div className="w-12 rounded-full">
-              <img
-                src={chatUser.profilePic || ProfilePhoto}
-                alt={chatUser.fullName}
-              />
+          <div className="flex gap-2 items-center ">
+            <div
+              className={`avatar ${
+                onlineUsers.includes(chatUser._id)
+                  ? "avatar-online"
+                  : "avatar-offline"
+              }`}
+            >
+              <div className="w-12 rounded-full">
+                <img
+                  src={chatUser.profilePic || ProfilePhoto}
+                  alt={chatUser.fullName}
+                />
+              </div>
             </div>
+            <p className="text-fuchsia-950 text-lg font-bold ">
+              {chatUser.fullName}
+            </p>
           </div>
-          <p className="text-fuchsia-950 text-lg font-bold ">
-            {chatUser.fullName}
-          </p>
+          {chatUser.unreadCountMessage > 0 && (
+            <div className="bg-fuchsia-950 w-5 h-5 rounded-full flex items-center justify-center p-3">
+              <span className="text-fuchsia-50 text-sm">{chatUser.unreadCountMessage}</span>
+            </div>
+          )}
         </div>
       ))}
     </div>

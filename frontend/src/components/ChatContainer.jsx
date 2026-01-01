@@ -22,37 +22,31 @@ const ChatContainer = () => {
     viewImage,
     setViewImage,
     SoundEnabled,
-    subscribeNewMessages,
-    unsubscribeNewMessages,
     confirmMessageDelete,
     setConfirmMessageDelete,
     realTimeDeletingMessage,
     unsubscribeDeletingMessage,
   } = useChatStore();
   const { openMenu, closeMenu, menu } = useContextMenu();
-  const {handleTouchStart,
-    handleTouchEnd} = TouchScreenContextMenu(); 
+  const { handleTouchStart, handleTouchEnd } = TouchScreenContextMenu();
   const { authUser } = useAuthStore();
   useEffect(() => {
+    if (!selectedUser) return;
     getMessageByUserId(selectedUser._id);
-    subscribeNewMessages();
     realTimeDeletingMessage();
-
     return () => {
-      unsubscribeNewMessages();
       unsubscribeDeletingMessage();
     };
   }, [
     selectedUser,
     getMessageByUserId,
-    subscribeNewMessages,
-    unsubscribeNewMessages,
     realTimeDeletingMessage,
     unsubscribeDeletingMessage,
   ]);
 
   if (viewImage) return <ViewImage />;
   const reverseMessages = [...messages].reverse();
+
   return (
     <div className="flex flex-col relative h-full">
       {confirmMessageDelete && (
@@ -97,6 +91,7 @@ const ChatContainer = () => {
           <>
             {reverseMessages.map((msg, index) => {
               const prevMessage = reverseMessages[index + 1];
+
               const showDate =
                 !prevMessage ||
                 normalizeDate(new Date(prevMessage.createdAt)).getTime() !==
@@ -109,6 +104,7 @@ const ChatContainer = () => {
                       {getDateLabel(msg.createdAt)}
                     </div>
                   )}
+
                   <div
                     key={msg._id}
                     className={`chat ${
