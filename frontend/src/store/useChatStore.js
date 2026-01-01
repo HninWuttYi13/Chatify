@@ -20,7 +20,23 @@ export const useChatStore = create((set, get) => ({
     set({ SoundEnabled: !get().SoundEnabled });
   },
   setActiveTab: (tab) => set({ activeTab: tab }),
-  setSelectedUser: (selectedUser) => set({ selectedUser }),
+  setSelectedUser: async (selectedUser) => {
+    set({selectedUser});
+    set((state)=> {
+      return {
+        chatUsers: state.chatUsers.map(u=>
+          u._id === selectedUser._id? {...u, unreadCountMessage:0} :u
+        )
+      }
+    })
+
+    try {
+      await axiosConstant.put(`/api/messages/mark-read/${selectedUser._id}`);
+    } catch (error) {
+      console.error("Failed to mark messages as read", error);
+    }
+  },
+
   getAllContacts: async () => {
     set({ isUserLoading: true });
     try {
@@ -36,7 +52,7 @@ export const useChatStore = create((set, get) => ({
     set({ isUserLoading: true });
     try {
       const res = await axiosConstant.get("/api/messages/chats");
-      set({ chatUsers: res.data });
+      set({ chatUsers: res.data.chatPartners });
     } catch (error) {
       toast.error(error.response.data.message);
     } finally {
@@ -73,9 +89,9 @@ export const useChatStore = create((set, get) => ({
         `/api/messages/send/${selectedUser._id}`,
         messageData
       );
-      set(state=> ({
-        messages: state.messages.map(m=> m._id === tempId ? res.data : m)
-      }))
+      set((state) => ({
+        messages: state.messages.map((m) => (m._id === tempId ? res.data : m)),
+      }));
     } catch (error) {
       set({ messages });
       toast.error(error?.response?.data?.message);
@@ -101,17 +117,47 @@ export const useChatStore = create((set, get) => ({
   },
   setConfirmDelete: (chatUser) => set({ confirmDelete: chatUser }),
   subscribeNewMessages: () => {
-    const { selectedUser, SoundEnabled } = get();
+    const { SoundEnabled } = get();
     const socket = useAuthStore.getState().socket;
     socket.on("newMessages", (newMessages) => {
-      const MessageSentFromSelectedUser =
-        newMessages.senderId === selectedUser._id;
-      if (!MessageSentFromSelectedUser) return;
-      const currentMessages = get().messages;
-      set({ messages: [...currentMessages, newMessages] });
-      const notificationSound = new Audio("/Sounds/notificationSound.mp3");
-      notificationSound.currentTime = 0;
-      if (SoundEnabled) notificationSound.play();
+      set((state) => {
+        const isChatOpen =
+          state.selectedUser && state.selectedUser._id === newMessages.senderId;
+        if (isChatOpen) {
+          return {
+            messages: [...state.messages, newMessages],
+          };
+        }
+        const exists = state.chatUsers.some(
+          (u) => u._id === newMessages.senderId
+        );
+        return {
+          chatUsers: exists
+            ? state.chatUsers.map((u) =>
+                u._id === newMessages.senderId
+                  ? {
+                      ...u,
+                      unreadCountMessage: (u.unreadCountMessage || 0) + 1,
+                    }
+                  : u
+              )
+            : [
+                {
+                  _id: newMessages.senderId,
+                  fullName: newMessages.senderName,
+                  profilePic: newMessages.senderProfilePic,
+                  unreadCountMessage: 1,
+                },
+                ...state.chatUsers,
+              ],
+        };
+      });
+
+      if (SoundEnabled) {
+        const audio = new Audio("/Sounds/notificationSound.mp3");
+
+        audio.play();
+      }
     });
   },
   unsubscribeNewMessages: () => {
@@ -128,10 +174,9 @@ export const useChatStore = create((set, get) => ({
         }));
         return;
       }
-      
+
       toast.success("Message is deleted successfully");
     } catch (error) {
-      
       toast.error(error?.response?.data?.message || "error in delete message");
     }
   },
@@ -144,7 +189,7 @@ export const useChatStore = create((set, get) => ({
         }));
         return;
       }
-      
+
       toast.success("Message is deleted successfully for both users");
     } catch (error) {
       toast.error(error?.response?.data?.message || "error in delete message");
@@ -158,8 +203,8 @@ export const useChatStore = create((set, get) => ({
       }));
     });
   },
-  unsubscribeDeletingMessage: ()=> {
+  unsubscribeDeletingMessage: () => {
     const socket = useAuthStore.getState().socket;
-    socket.off("messageDeleted")
-  }
+    socket.off("messageDeleted");
+  },
 }));
