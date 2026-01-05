@@ -13,6 +13,16 @@ export const useChatStore = create((set, get) => ({
   confirmDelete: null,
   viewImage: null,
   confirmMessageDelete: null,
+  firstUnreadMessage : null,
+  setFirstUnreadMessage: ()=> {
+    set((state)=> {
+      const authUser = useAuthStore.getState().authUser;
+      const firstUnread = state.messages.find(m=> !m.isRead && m.senderId !== authUser._id);
+      return {
+        firstUnreadMessage: firstUnread? firstUnread._id : null
+      }
+    })
+  },
   setViewImage: (img) => set({ viewImage: img }),
   SoundEnabled: JSON.parse(localStorage.getItem("SoundEnabled")) === true,
   toggleSound: () => {
@@ -30,11 +40,7 @@ export const useChatStore = create((set, get) => ({
       }
     })
 
-    try {
-      await axiosConstant.put(`/api/messages/mark-read/${selectedUser._id}`);
-    } catch (error) {
-      console.error("Failed to mark messages as read", error);
-    }
+   
   },
 
   getAllContacts: async () => {
@@ -207,4 +213,15 @@ export const useChatStore = create((set, get) => ({
     const socket = useAuthStore.getState().socket;
     socket.off("messageDeleted");
   },
-}));
+  markUnreadMessage: async(msgId)=> {
+   set((state) => ({
+     messages: state.messages.map(m=>m._id === msgId ? { ...m, isRead: true } : m),
+   }));
+   try {
+    await axiosConstant.put(`api/messages/mark-read/${msgId}`)
+   } catch (error) {
+    console.log(error);
+    
+   }
+}}
+))
