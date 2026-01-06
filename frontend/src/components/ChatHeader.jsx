@@ -5,13 +5,13 @@ import { ArrowLeft } from "lucide-react";
 import { clickSound } from "./mouseClickSound";
 import { useAuthStore } from "../store/useAuthStore";
 export function ChatHeader() {
-  const { selectedUser, setSelectedUser, SoundEnabled, markUnreadMessage } =
+  const { selectedUser, setSelectedUser, SoundEnabled } =
     useChatStore();
   const { onlineUsers } = useAuthStore();
   useEffect(() => {
     const handleEscKey = (event) => {
       if (event.key === "Escape") setSelectedUser(null);
-      markUnreadMessage(selectedUser._id);
+     
     };
     window.addEventListener("keydown", handleEscKey);
     //clean up function
@@ -24,7 +24,6 @@ export function ChatHeader() {
         size={28}
         onClick={() => {
           if (SoundEnabled) clickSound();
-          markUnreadMessage(selectedUser._id)
           setSelectedUser(null);
         }}
       />

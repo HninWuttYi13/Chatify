@@ -88,21 +88,27 @@ export const sendMessage = async (req, res) => {
 export const markReadMessage = async(req, res)=> {
   try {
     const loggedInUserId = req.user._id;
-    const {id: otherUserId} = req.params;
-    const updateMessage = await Message.updateMany(
-    {  
-      senderId: otherUserId,
-      receiverId: loggedInUserId,
-      isRead: false
-    },
-      {
-        $set: { isRead: true },
-      }
-    
-    );
+    const {id: messageId} = req.params;
+    const currentMsg = await Message.findById(messageId);
+    if(!currentMsg) return res.state(404).json({message: "message is not found"})
+    const otherUserId = currentMsg.senderId;
+   const unreadMessages = await Message.find({
+    senderId: otherUserId,
+    receiverId: loggedInUserId,
+    isRead: false
+   }).select("_id");
+   const unreadMessageIds = unreadMessages.map(m=> m._id);
+   await Message.updateMany(
+    {_id: {$in: unreadMessageIds}},
+    {$set: {isRead: true}}
+   )
+    const senderSocketId = getReceiverId(otherUserId);
+    if(senderSocketId) {
+      io.to(senderSocketId).emit("readMessage",  {messageIds: unreadMessageIds});
+    }
     return res.status(200).json({
       message: "update message as read",
-      modifiedCount: updateMessage.modifiedCount
+      modifiedCount: unreadMessageIds.length
     })
   } catch (error) {
     console.error(error);
