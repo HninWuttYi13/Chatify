@@ -10,7 +10,7 @@ import ViewImage from "./ViewImage";
 import { clickSound } from "./mouseClickSound";
 import { normalizeDate, getDateLabel } from "./timeStamps.js";
 import { useContextMenu } from "./useContextMenu.js";
-import { ArrowBigDown, Trash } from "lucide-react";
+import { ArrowBigDown, Check, CheckCheck, Trash } from "lucide-react";
 import ConfirmationDeleteMessage from "./ConfirmationDeleteMessage.jsx";
 import { TouchScreenContextMenu } from "./TouchScreenContextMenu.js";
 const ChatContainer = () => {
@@ -29,6 +29,8 @@ const ChatContainer = () => {
     firstUnreadMessage,
     setFirstUnreadMessage,
     markUnreadMessage,
+    realTimeUnreadMessage,
+    unsubscribeRealTimeUnreadMessage,
   } = useChatStore();
   const { openMenu, closeMenu, menu } = useContextMenu();
   const { handleTouchStart, handleTouchEnd } = TouchScreenContextMenu();
@@ -43,8 +45,10 @@ const ChatContainer = () => {
   useEffect(() => {
     if (!selectedUser) return;
     getMessageByUserId(selectedUser._id);
+    realTimeUnreadMessage()
     realTimeDeletingMessage();
     return () => {
+      unsubscribeRealTimeUnreadMessage();
       unsubscribeDeletingMessage();
     };
   }, [
@@ -219,7 +223,7 @@ const ChatContainer = () => {
                       ref={firstUnreadMessageRef}
                       className="divider text-fuchsia-700 my-4 font-semibold italic"
                     >
-                      Unread Messages 
+                      Unread Messages
                     </div>
                   )}
 
@@ -241,21 +245,13 @@ const ChatContainer = () => {
                         />
                       </div>
                     </div>
-                    <div className="chat-header">
-                      <time className="text-xs opacity-50">
-                        {new Date(msg.createdAt).toLocaleTimeString(undefined, {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </time>
-                    </div>
-
+                    
                     <div
-                      className={`chat-bubble ${
+                      className={`chat-bubble relative min-h-0 flex flex-col ${
                         authUser._id === msg.senderId
-                          ? "bg-fuchsia-50 text-fuchsia-950"
+                          ? "bg-fuchsia-100 text-fuchsia-950" // Lighter background for better contrast
                           : "bg-fuchsia-900 text-fuchsia-50"
-                      }`}
+                      } min-w-[150px] max-w-[85%]  pr-2`}
                       onContextMenu={(e) => {
                         if (SoundEnabled) clickSound();
                         openMenu(e, msg);
@@ -267,18 +263,56 @@ const ChatContainer = () => {
                         <img
                           src={msg.image}
                           alt="Shared"
-                          className="rounded-lg h-48 object-cover cursor-pointer"
+                          className="rounded-lg h-48 object-cover cursor-pointer mb-1"
                           onClick={() => {
                             if (SoundEnabled) clickSound();
                             setViewImage(msg.image);
                           }}
                         />
                       )}
-                      {msg.text && (
-                        <p className="mt-2 max-w-xl whitespace-pre-wrap break-all">
-                          {msg.text}
-                        </p>
-                      )}
+
+                      <div className="flex flex-col justify-end">
+                        {msg.text && (
+                          <p className="max-w-xl  whitespace-pre-wrap break-all  text-[15px] leading-tight">
+                            {msg.text}
+                          </p>
+                        )}
+
+                        {/* Metadata: Time + Ticks */}
+                        <div className=" flex items-center justify-end gap-1 mt-2">
+                          <span
+                            className={`text-[11px] opacity-70 ${
+                              authUser._id === msg.senderId
+                                ? "text-fuchsia-950"
+                                : "text-fuchsia-50"
+                            }`}
+                          >
+                            {new Date(msg.createdAt).toLocaleTimeString(
+                              undefined,
+                              {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              }
+                            )}
+                          </span>
+
+                          {msg.senderId === authUser._id && (
+                            <div
+                              className={
+                                msg.isRead
+                                  ? "text-fuchsia-700"
+                                  : "text-fuchsia-500"
+                              }
+                            >
+                              {msg.isRead ? (
+                                <CheckCheck size={14} strokeWidth={3} />
+                              ) : (
+                                <Check size={14} strokeWidth={3} />
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
