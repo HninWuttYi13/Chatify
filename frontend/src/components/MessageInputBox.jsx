@@ -3,12 +3,34 @@ import { useRef, useState } from "react";
 import { useChatStore } from "../store/useChatStore";
 import toast from "react-hot-toast";
 import { clickSound } from "./mouseClickSound";
+import { useAuthStore } from "../store/useAuthStore";
 const sound = new Audio("/Sounds/keystroke1.mp3");
 const MessageInputBox = () => {
   const textRef = useRef();
   const imageRef = useRef(null);
   const [imagePreview, setImagePreview] = useState("");
-  const { sendMessage, SoundEnabled } = useChatStore();
+  const { sendMessage, SoundEnabled, selectedUser } = useChatStore();
+  const { socket } = useAuthStore();
+  const isTypingRef = useRef(false);
+  const typingTimeOutRef = useRef();
+  console.log(typingTimeOutRef);
+  
+  const handleTyping = () => {
+    if (!selectedUser) return;
+    if (!isTypingRef.current) {
+      socket.emit("startTyping", {
+        receiverId: selectedUser._id,
+      });
+      isTypingRef.current = true;
+    }
+    clearTimeout(typingTimeOutRef.current);
+    typingTimeOutRef.current = setTimeout(() => {
+      socket.emit("stopTyping", {
+        receiverId: selectedUser._id,
+      });
+      isTypingRef.current = false;
+    }, 1000);
+  };
   const handleSendMessage = (e) => {
     e.preventDefault();
     const text = textRef.current.value;
@@ -52,8 +74,8 @@ const MessageInputBox = () => {
               <button
                 type="button"
                 onClick={() => {
-                  if(SoundEnabled)clickSound();
-                  setImagePreview(null)
+                  if (SoundEnabled) clickSound();
+                  setImagePreview(null);
                 }}
                 className="absolute -top-1 -right-1 bg-white rounded-full p-0.5 shadow cursor-pointer"
               >
@@ -68,13 +90,17 @@ const MessageInputBox = () => {
             placeholder="Text your message"
             className="flex-1 bg-transparent outline-none text-fuchsia-950 py-1"
             ref={textRef}
+            onChange={handleTyping}
           />
         </div>
         <div>
-          <button type="button" onClick={() => {
-            if(SoundEnabled) clickSound();
-            imageRef.current.click();
-          }}>
+          <button
+            type="button"
+            onClick={() => {
+              if (SoundEnabled) clickSound();
+              imageRef.current.click();
+            }}
+          >
             <Image
               size={25}
               className=" text-fuchsia-950  hover:text-fuchsia-600 cursor-pointer"

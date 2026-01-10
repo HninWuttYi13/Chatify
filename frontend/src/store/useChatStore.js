@@ -14,6 +14,7 @@ export const useChatStore = create((set, get) => ({
   viewImage: null,
   confirmMessageDelete: null,
   firstUnreadMessage: null,
+  isTyping: false,
   setFirstUnreadMessage: () => {
     set((state) => {
       const authUser = useAuthStore.getState().authUser;
@@ -239,4 +240,35 @@ export const useChatStore = create((set, get) => ({
     const socket = useAuthStore.getState().socket;
     socket.off("readMessage");
   },
+  displayTyping : ()=> {
+      const socket = useAuthStore.getState().socket;
+      const {SoundEnabled} = get();
+     socket.on("displayTyping", ({senderId})=> {
+      if (SoundEnabled) {
+        const audio = new Audio("/Sounds/bubbleSound.mp3");
+        audio.currentTime = 0;
+        audio.play();
+      }
+      set((state)=> {
+        if(senderId !== state.selectedUser._id) return state;
+        return {isTyping: true}
+      })
+      
+     })
+  },
+  stopDisplayTyping: ()=> {
+    const socket = useAuthStore.getState().socket;
+    socket.on("hideTyping", ({senderId})=> {
+      set((state)=> {
+        if(senderId !== state.selectedUser._id)return state;
+        return {isTyping: false}
+      })
+    });
+  },
+  unsubscribeDisplayTyping: ()=> {
+    const socket = useAuthStore.getState().socket;
+    socket.off("displayTyping");
+    socket.off("hideTyping");
+  },
+
 }));
