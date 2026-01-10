@@ -44,6 +44,18 @@ io.on("connection", (socket)=> {
   const userId = socket.userId;
   userSocketMap[userId] = socket.id;
   io.emit("getOnlineUsers", Object.keys(userSocketMap));
+  socket.on("startTyping", ({receiverId})=> {
+    const receiverSocketId = getReceiverId(receiverId);
+    if(receiverSocketId){
+      io.to(receiverSocketId).emit("displayTyping", {senderId: userId})
+    }
+  });
+  socket.on("stopTyping", ({receiverId})=> {
+   const receiverSocketId = getReceiverId(receiverId);
+   if(receiverSocketId){
+    io.to(receiverSocketId).emit("hideTyping", {senderId: userId})
+   }
+  })
   socket.on("disconnect", ()=>{
     delete userSocketMap[userId];
     io.emit("getOnlineUsers", Object.keys(userSocketMap));

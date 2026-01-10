@@ -31,6 +31,10 @@ const ChatContainer = () => {
     markUnreadMessage,
     realTimeUnreadMessage,
     unsubscribeRealTimeUnreadMessage,
+    isTyping,
+    displayTyping,
+    stopDisplayTyping,
+    unsubscribeDisplayTyping,
   } = useChatStore();
   const { openMenu, closeMenu, menu } = useContextMenu();
   const { handleTouchStart, handleTouchEnd } = TouchScreenContextMenu();
@@ -45,20 +49,17 @@ const ChatContainer = () => {
   useEffect(() => {
     if (!selectedUser) return;
     getMessageByUserId(selectedUser._id);
-    realTimeUnreadMessage()
+    realTimeUnreadMessage();
     realTimeDeletingMessage();
+    displayTyping();
+    stopDisplayTyping();
     return () => {
       unsubscribeRealTimeUnreadMessage();
       unsubscribeDeletingMessage();
+      unsubscribeDisplayTyping();
     };
-  }, [
-    selectedUser,
-    getMessageByUserId,
-    realTimeDeletingMessage,
-    unsubscribeDeletingMessage,
-  ]);
+  }, [selectedUser]);
 
-  
   useEffect(() => {
     if (
       !isMessageLoading &&
@@ -66,16 +67,15 @@ const ChatContainer = () => {
       !hasScrolledToUnread.current
     ) {
       setFirstUnreadMessage();
-        }
-    
-        if (firstUnreadMessageRef.current) {
-          firstUnreadMessageRef.current.scrollIntoView({
-            behavior: "auto",
-            block: "start",
-          });
-          hasScrolledToUnread.current = true;
-        }
-  
+    }
+
+    if (firstUnreadMessageRef.current) {
+      firstUnreadMessageRef.current.scrollIntoView({
+        behavior: "auto",
+        block: "start",
+      });
+      hasScrolledToUnread.current = true;
+    }
   }, [isMessageLoading, setFirstUnreadMessage, firstUnreadMessage]);
 
   useEffect(() => {
@@ -180,8 +180,8 @@ const ChatContainer = () => {
       <ChatHeader />
       {showScrollDown && (
         <div
-          onClick={()=> {
-            if(SoundEnabled) clickSound();
+          onClick={() => {
+            if (SoundEnabled) clickSound();
             scrollToLatest();
           }}
           className="absolute flex items-center justify-center  z-50 bottom-23 right-5 w-12 h-12 bg-fuchsia-950 rounded-full cursor-pointer"
@@ -194,6 +194,7 @@ const ChatContainer = () => {
           )}
         </div>
       )}
+
       {/* Body chat message*/}
       <div
         ref={chatBodyRef}
@@ -245,13 +246,13 @@ const ChatContainer = () => {
                         />
                       </div>
                     </div>
-                    
+
                     <div
                       className={`chat-bubble relative min-h-0 flex flex-col ${
                         authUser._id === msg.senderId
                           ? "bg-fuchsia-100 text-fuchsia-950" // Lighter background for better contrast
-                          : "bg-fuchsia-900 text-fuchsia-50"
-                      } min-w-[150px] max-w-[85%]  pr-2`}
+                          : "bg-fuchsia-800 text-fuchsia-50"
+                      } `}
                       onContextMenu={(e) => {
                         if (SoundEnabled) clickSound();
                         openMenu(e, msg);
@@ -324,7 +325,21 @@ const ChatContainer = () => {
         ) : (
           <NoChatContainer name={selectedUser.fullName} />
         )}
+        {isTyping && (
+          <div className="chat chat-start absolute flex items-center gap-1 animate-in fade-in duration-300 bottom-17 z-50">
+           
+            <div className=" bg-fuchsia-100 flex items-center gap-1 px-4 py-2 rounded-2xl rounded-bl-none shadow-sm">
+              {/* The Three Dots Wave */}
+              <div className="flex gap-1">
+                <span className="w-1.5 h-1.5 bg-fuchsia-600 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+                <span className="w-1.5 h-1.5 bg-fuchsia-600 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
+                <span className="w-1.5 h-1.5 bg-fuchsia-600 rounded-full animate-bounce"></span>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
+
       {/* footer  text message*/}
 
       <MessageInputBox />
