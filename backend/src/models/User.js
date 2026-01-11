@@ -21,6 +21,10 @@ const userSchema = new mongoose.Schema( //create Schema
       type: String,
       default: "",
     },
+    lastOnline: {
+      type: Date,
+      default: null
+    }
   },
   { timestamps: true }
 ); //created time and updated time

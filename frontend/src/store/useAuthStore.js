@@ -10,6 +10,7 @@ export const useAuthStore = create((set, get) => ({
   isUpdatingProfile: false,
   socket: null,
   onlineUsers: [],
+  lastOnlineUsers: {},
   checkAuth: async () => {
     try {
       const res = await axiosConstant.get("api/auth/check");
@@ -88,4 +89,22 @@ export const useAuthStore = create((set, get) => ({
   disconnectSocket: () => {
     if (get().socket?.connected) get().socket.disconnect();
   },
+  getLastOnlineUsers: ()=> {
+    const {socket} = get();
+    if(!socket) return;
+    socket.on("offlineUser", ({ userId, lastOnline }) => {
+      set((state) => ({
+        lastOnlineUsers: {
+          ...state.lastOnlineUsers,
+          [userId]: lastOnline,
+        },
+      }));
+    });
+  },
+  unsubscribeLastOnlineUsers: ()=> {
+    const {socket} = get();
+   if(socket) {
+    socket.off("offlineUser");
+   }
+  }
 }));
