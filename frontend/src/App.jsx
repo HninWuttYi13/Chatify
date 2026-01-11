@@ -8,16 +8,26 @@ import PageLoader from "./components/PageLoader.jsx";
 import { Toaster } from "react-hot-toast";
 import { useChatStore } from "./store/useChatStore.js";
 const App = () => {
-  const { authUser, isChecking, checkAuth } = useAuthStore();
-  const { subscribeNewMessages, unsubscribeNewMessages } = useChatStore();
+  const {
+    authUser,
+    isChecking,
+    checkAuth,
+    getLastOnlineUsers,
+    unsubscribeLastOnlineUsers,
+  } = useAuthStore();
+  const { subscribeNewMessages, unsubscribeNewMessages, selectedUser } =
+    useChatStore();
   useEffect(() => {
     checkAuth();
     if(!authUser) return;
     subscribeNewMessages();
     return ()=> unsubscribeNewMessages()
-  }, [checkAuth, authUser]);
+  }, [authUser]);
  
-
+ useEffect(()=> {
+    getLastOnlineUsers();
+    return ()=> unsubscribeLastOnlineUsers();
+ }, [selectedUser])
   if (isChecking) return <PageLoader />;
   return (
     <div className="min-h-screen bg-fuchsia-200 relative flex items-center justify-center overflow-hidden ">

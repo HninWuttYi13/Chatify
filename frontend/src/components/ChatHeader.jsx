@@ -4,10 +4,11 @@ import { useChatStore } from "../store/useChatStore";
 import { ArrowLeft } from "lucide-react";
 import { clickSound } from "./mouseClickSound";
 import { useAuthStore } from "../store/useAuthStore";
+import { formatTime } from "./formatTime.js";
 export function ChatHeader() {
-  const { selectedUser, setSelectedUser, SoundEnabled } =
+  const { selectedUser, setSelectedUser, SoundEnabled, } =
     useChatStore();
-  const { onlineUsers } = useAuthStore();
+  const { onlineUsers, lastOnlineUsers } = useAuthStore();
   useEffect(() => {
     const handleEscKey = (event) => {
       if (event.key === "Escape") setSelectedUser(null);
@@ -17,6 +18,9 @@ export function ChatHeader() {
     //clean up function
     return () => window.removeEventListener("keydown", handleEscKey);
   }, [setSelectedUser]);
+  const isOnline = onlineUsers.includes(selectedUser._id);
+  const isLastOnline =
+    lastOnlineUsers[selectedUser._id] || selectedUser.lastOnline;
   return (
     <div className="bg-fuchsia-900 h-18 flex items-center gap-4 p-3 shadow-lg">
       <ArrowLeft
@@ -45,7 +49,7 @@ export function ChatHeader() {
         <div className="text-fuchsia-50">
           <p className="text-lg font-semibold">{selectedUser.fullName}</p>
           <p className="text-sm">
-            {onlineUsers.includes(selectedUser._id) ? "online" : "offline"}
+            {isOnline ? "online" : isLastOnline ? `last seen ${formatTime(isLastOnline)}` : "Offline" }
           </p>
         </div>
       </div>

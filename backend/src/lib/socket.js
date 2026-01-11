@@ -5,6 +5,7 @@ import { Server } from "socket.io";
 import express from "express";
 import http from "http";
 import { socketAuthMiddleware } from "./socket.auth.middleware.js";
+import User from "../models/User.js";
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
@@ -56,8 +57,16 @@ io.on("connection", (socket)=> {
     io.to(receiverSocketId).emit("hideTyping", {senderId: userId})
    }
   })
-  socket.on("disconnect", ()=>{
+  socket.on("disconnect", async()=>{
     delete userSocketMap[userId];
+    const disconnectTime = new Date();
+    await User.findByIdAndUpdate(userId, {
+      lastOnline: disconnectTime
+    });
+    io.emit("offlineUser", {
+      userId,
+      lastOnline: disconnectTime,
+    });
     io.emit("getOnlineUsers", Object.keys(userSocketMap));
   });
   
