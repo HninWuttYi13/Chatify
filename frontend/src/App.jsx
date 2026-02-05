@@ -7,6 +7,10 @@ import { useAuthStore } from "./store/useAuthStore.js";
 import PageLoader from "./components/PageLoader.jsx";
 import { Toaster } from "react-hot-toast";
 import { useChatStore } from "./store/useChatStore.js";
+import AudioCallController from "./components/AudioCallController.jsx";
+import IncomingAudioCallModal from "./components/IncomingAudioCallModal.jsx";
+import OutgoingAudioCallModal from "./components/OutgoingAudioCallModal.jsx";
+import ActiveCallModal from "./components/ActiveCallModal.jsx";
 const App = () => {
   const {
     authUser,
@@ -45,6 +49,10 @@ const App = () => {
           element={!authUser ? <LoginPage /> : <Navigate to={"/"} />}
         />
       </Routes>
+      <AudioCallController/>
+      <OutgoingAudioCallModal/>
+      <IncomingAudioCallModal/>
+      <ActiveCallModal/>
       <Toaster position="bottom-center" />
     </div>
   );

@@ -11,7 +11,7 @@ const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
     origin: process.env.CLIENT_URL,
-    credentials: true
+    credentials: true,
   },
 });
 io.use(socketAuthMiddleware);
@@ -20,48 +20,83 @@ io.use(socketAuthMiddleware);
  * Purpose
  * -keep track of current online user
  * -Map each authenticated user to their socketId
- * 
+ *
  * How its works
  * -When a user connects, their socketId is stored using their userId as the key
  * -All connected users are notified with the updated user online list
  * -When a user disconnect, their  userId is removed from the userSocketMap
  * -Online user list is broadcast again after disconnect
- * 
+ *
  * Data Structure
  * const userSocketMap = {
  *    userId: socketId
  * }
- * 
+ *
  * Usage
  * -Showing online user
  * -Sending message in real time to the online users
  */
-export function getReceiverId(userId){
+export function getReceiverId(userId) {
   return userSocketMap[userId];
 }
-const userSocketMap = {}; 
-io.on("connection", (socket)=> {
+const userSocketMap = {};
+io.on("connection", (socket) => {
   console.log("A user is connected", socket.user.fullName);
   const userId = socket.userId;
   userSocketMap[userId] = socket.id;
   io.emit("getOnlineUsers", Object.keys(userSocketMap));
-  socket.on("startTyping", ({receiverId})=> {
+  socket.on("startTyping", ({ receiverId }) => {
     const receiverSocketId = getReceiverId(receiverId);
-    if(receiverSocketId){
-      io.to(receiverSocketId).emit("displayTyping", {senderId: userId})
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("displayTyping", { senderId: userId });
     }
   });
-  socket.on("stopTyping", ({receiverId})=> {
-   const receiverSocketId = getReceiverId(receiverId);
-   if(receiverSocketId){
-    io.to(receiverSocketId).emit("hideTyping", {senderId: userId})
-   }
-  })
-  socket.on("disconnect", async()=>{
+  socket.on("stopTyping", ({ receiverId }) => {
+    const receiverSocketId = getReceiverId(receiverId);
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("hideTyping", { senderId: userId });
+    }
+  });
+  socket.on("call:offer", async({ receiverId, offer }) => {
+    const receiverSocketId = getReceiverId(receiverId);
+    if (!receiverSocketId) {
+      socket.emit("call:unavailable");
+    }
+    const callerUser = await User.findById(userId).select("_id fullName profilePic")
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("call:incoming", { callerUser, offer });
+    }
+  });
+  socket.on("call:answer", async ({ receiverId, answer }) => {
+    
+    const receiverSocketId = getReceiverId(receiverId);
+    const acceptCallUser = await User.findById(userId).select(
+      "_id fullName profilePic",
+    );
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("call:accepted", {
+         acceptCallUser,
+        answer,
+      });
+    }
+  });
+  socket.on("call:end", ({ receiverId }) => {
+    const receiverSocketId = getReceiverId(receiverId);
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("call:ended");
+    }
+  });
+socket.on("call:ice", ({receiverId, candidate})=> {
+  const receiverSocketId = getReceiverId(receiverId);
+  if(receiverSocketId){
+    io.to(receiverSocketId).emit("call:ice", {senderId: userId, candidate})
+  }
+})
+  socket.on("disconnect", async () => {
     delete userSocketMap[userId];
     const disconnectTime = new Date();
     await User.findByIdAndUpdate(userId, {
-      lastOnline: disconnectTime
+      lastOnline: disconnectTime,
     });
     io.emit("offlineUser", {
       userId,
@@ -69,6 +104,5 @@ io.on("connection", (socket)=> {
     });
     io.emit("getOnlineUsers", Object.keys(userSocketMap));
   });
-  
 });
-export {app, io, server}
+export { app, io, server };

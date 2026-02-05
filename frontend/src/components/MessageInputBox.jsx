@@ -13,7 +13,6 @@ const MessageInputBox = () => {
   const { socket } = useAuthStore();
   const isTypingRef = useRef(false);
   const typingTimeOutRef = useRef();
-  console.log(typingTimeOutRef);
   
   const handleTyping = () => {
     if (!selectedUser) return;
