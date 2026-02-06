@@ -28,7 +28,7 @@ const SignUpPage = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="relative w-full sm:max-w-lg md:max-w-3xl lg:max-w-6xl h-auto">
+    <div className="relative w-full sm:max-w-lg md:max-w-3xl lg:max-w-6xl h-auto p-4">
       <AnimatedBorder>
         <div className="w-full flex flex-col md:flex-row bg-fuchsia-100 rounded-2xl">
           {/* LEFT COLUMN */}
