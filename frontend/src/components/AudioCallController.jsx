@@ -9,37 +9,25 @@ const AudioCallController = () => {
 
   const {
     caller,
-
     callState,
-
     incomingCall,
-
     incomingOffer,
-
     acceptCall,
-
     remoteEndCall,
+    isMute,
   } = useCallStore();
 
   const pcRef = useRef(null);
-
   const localStreamRef = useRef(null);
-
   const answeredRef = useRef(false);
-
   const audioRef = useRef(new Audio());
-
   //Queue to store candidates that arrive too early
-
   const iceQueue = useRef([]);
-
   //helper function to process the queue
-
   const processIceQueue = async () => {
-    if(!pcRef.current || !pcRef.current.remoteDescription) return
+    if (!pcRef.current || !pcRef.current.remoteDescription) return;
     while (iceQueue.current.length > 0) {
       const candidate = iceQueue.current.shift();
-
       try {
         await pcRef.current.addIceCandidate(new RTCIceCandidate(candidate));
       } catch (e) {
@@ -53,42 +41,30 @@ const AudioCallController = () => {
 * 1. Create PeerConnection
 
 * -------------------------------------------------- */
-
   useEffect(() => {
     if (!socket || !caller) return;
-
     if (pcRef.current) return;
-
     if (!["calling", "ringing", "in-call"].includes(callState)) return;
-
     const pc = new RTCPeerConnection({
       iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
     });
-
     pcRef.current = pc;
-
     // ICE → signaling server → other peer
-
     pc.onicecandidate = (event) => {
       if (event.candidate) {
         socket.emit("call:ice", {
           receiverId: caller._id || caller,
-
           candidate: event.candidate,
         });
       }
     };
-
     // Play remote audio
-
     pc.ontrack = (event) => {
       const remoteStream = new MediaStream();
       remoteStream.addTrack(event.track);
       audioRef.current.srcObject = remoteStream;
 
       audioRef.current.autoplay = true;
-      console.log("Track kind:", event.track.kind);
-
       if (!document.body.contains(audioRef.current)) {
         audioRef.current.style.display = "none";
         document.body.appendChild(audioRef.current);
@@ -106,37 +82,25 @@ const AudioCallController = () => {
 
   useEffect(() => {
     if (callState !== "calling") return;
-
     if (!pcRef.current) return;
-
     const createOffer = async () => {
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           echoCancellation: true,
-
-          noiseSuppression: true,
-
+          noiseSuppression: false,
           autoGainControl: true,
         },
       });
-
       localStreamRef.current = stream;
-
+      
       stream.getTracks().forEach((t) => pcRef.current.addTrack(t, stream));
-
-      console.log("local tracks", stream.getTracks());
-
       const offer = await pcRef.current.createOffer();
-
       await pcRef.current.setLocalDescription(offer);
-
       socket.emit("call:offer", {
         receiverId: caller._id || caller,
-
         offer,
       });
     };
-
     createOffer();
   }, [callState]);
 
@@ -202,7 +166,7 @@ const AudioCallController = () => {
         audio: {
           echoCancellation: true,
 
-          noiseSuppression: true,
+          noiseSuppression: false,
 
           autoGainControl: true,
         },
@@ -280,10 +244,21 @@ const AudioCallController = () => {
     if (document.body.contains(audioRef.current)) {
       document.body.removeChild(audioRef.current);
     }
-
   }, [callState]);
+  /* --------------------------------------------------
+
+* Mute when the mute button is clicked
+
+* -------------------------------------------------- */
+  useEffect(() => {
+     if(localStreamRef.current){
+      localStreamRef.current.getAudioTracks().forEach(track=> {
+        track.enabled= !isMute
+      })
+     }
+  }, [isMute]);
 
   return null;
-};
+};;
 
 export default AudioCallController;
