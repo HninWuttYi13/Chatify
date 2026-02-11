@@ -2,12 +2,11 @@ import { useState } from "react";
 import { useCallStore } from "../store/useCallStore";
 import { Mic, MicOff, PhoneOff, Volume2, VolumeX } from "lucide-react";
 import ProfilePhoto from "../image/avatar_profile.jpg";
-import { phoneEndCall } from "./mouseClickSound";
+import { clickSound, phoneEndCall } from "./mouseClickSound";
 import { useChatStore } from "../store/useChatStore";
 const ActiveCallModal = () => {
-  const { callState, endCall, caller, callDuration } = useCallStore();
+  const { callState, endCall, caller, callDuration, isMute, setIsMute } = useCallStore();
   const {SoundEnabled} = useChatStore();
-  const [isMuted, setIsMuted] = useState(false);
   const [isSpeaker, setIsSpeaker] = useState(true);
   // Format time (00:00)
   const formatTime = (totalSeconds) => {
@@ -60,12 +59,15 @@ const ActiveCallModal = () => {
         <div className="flex items-center justify-between w-full px-8">
           {/* Mute Button */}
           <button 
-            onClick={() => setIsMuted(!isMuted)}
+            onClick={() => {
+              if(SoundEnabled) clickSound();
+              setIsMute(!isMute)
+            }}
             className={`p-5 rounded-full transition-all cursor-pointer ${
-              isMuted ? "bg-white text-slate-900" : "bg-fuchsia-950 text-white hover:bg-fuchsia-900"
+              isMute? "bg-white text-slate-900" : "bg-fuchsia-950 text-white hover:bg-fuchsia-900"
             }`}
           >
-            {isMuted ? <MicOff size={28} /> : <Mic size={28} />}
+            {isMute ? <MicOff size={28} /> : <Mic size={28} />}
           </button>
 
           {/* End Call Button */}

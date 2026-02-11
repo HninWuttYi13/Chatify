@@ -6,6 +6,8 @@ export const useCallStore = create((set, get) => ({
   incomingOffer: null,
   callDuration: 0,
   timerId: null,
+  isMute: false,
+  setIsMute: ()=> set((state)=> ({isMute: !state.isMute})),
   incomingCall: ({ callerUser, offer }) => {
     set({
       callState: "ringing",
