@@ -1,13 +1,11 @@
-import { useState } from "react";
 import { useCallStore } from "../store/useCallStore";
-import { Mic, MicOff, PhoneOff, Volume2, VolumeX } from "lucide-react";
+import { Mic, MicOff, PhoneOff} from "lucide-react";
 import ProfilePhoto from "../image/avatar_profile.jpg";
 import { clickSound, phoneEndCall } from "./mouseClickSound";
 import { useChatStore } from "../store/useChatStore";
 const ActiveCallModal = () => {
-  const { callState, endCall, caller, callDuration, isMute, setIsMute } = useCallStore();
+  const { callState, endCall, caller, callDuration, isMute, setIsMute} = useCallStore();
   const {SoundEnabled} = useChatStore();
-  const [isSpeaker, setIsSpeaker] = useState(true);
   // Format time (00:00)
   const formatTime = (totalSeconds) => {
     const mins = Math.floor(totalSeconds / 60);
@@ -56,7 +54,7 @@ const ActiveCallModal = () => {
         </div>
 
         {/* Bottom Section: Controls */}
-        <div className="flex items-center justify-between w-full px-8">
+        <div className="flex items-center gap-8 justify-center px-3 py-2 border-fuchsia-300 border rounded-full">
           {/* Mute Button */}
           <button 
             onClick={() => {
@@ -76,20 +74,12 @@ const ActiveCallModal = () => {
               if(SoundEnabled) phoneEndCall();
               endCall();
             }}
-            className="p-7 bg-red-500 hover:bg-red-600 text-white rounded-full shadow-[0_0_30px_rgba(239,68,68,0.4)] transition-transform hover:scale-110 active:scale-90 cursor-pointer"
+            className="p-5 bg-red-500 hover:bg-red-600 text-white rounded-full shadow-[0_0_30px_rgba(239,68,68,0.4)] transition-transform hover:scale-110 active:scale-90 cursor-pointer"
           >
-            <PhoneOff size={36} fill="currentColor" />
+            <PhoneOff size={28} fill="currentColor" />
           </button>
 
-          {/* Speaker/Volume Button */}
-          <button 
-            onClick={() => setIsSpeaker(!isSpeaker)}
-            className={`p-5 rounded-full transition-all ${
-              !isSpeaker ? "bg-white text-fuchsia-900" : "bg-fuchsia-950 text-white hover:bg-fuchsia-900 cursor-pointer"
-            }`}
-          >
-            {isSpeaker ? <Volume2 size={28} /> : <VolumeX size={28} />}
-          </button>
+        
         </div>
 
       </div>

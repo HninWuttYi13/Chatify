@@ -6,6 +6,7 @@ import express from "express";
 import http from "http";
 import { socketAuthMiddleware } from "./socket.auth.middleware.js";
 import User from "../models/User.js";
+import Message from "../models/Message.js";
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
@@ -57,41 +58,98 @@ io.on("connection", (socket) => {
       io.to(receiverSocketId).emit("hideTyping", { senderId: userId });
     }
   });
-  socket.on("call:offer", async({ receiverId, offer }) => {
+  socket.on("call:offer", async ({ receiverId, offer, }) => {
     const receiverSocketId = getReceiverId(receiverId);
+    const callMessage = await Message.create({
+      senderId: userId,
+      receiverId,
+      callLog: {
+        callType: "audio",
+        callStatus: "ringing",
+        callDuration: 0,
+      },
+    });
     if (!receiverSocketId) {
+      await Message.findByIdAndUpdate(callMessage._id, {
+        "callLog.callStatus": "missed",
+      });
       socket.emit("call:unavailable");
     }
-    const callerUser = await User.findById(userId).select("_id fullName profilePic")
+    const callerUser = await User.findById(userId).select(
+      "_id fullName profilePic",
+    );
+    const messagePayload = {
+      _id: callMessage._id,
+      senderId: userId,
+      receiverId,
+      messageType: "call",
+      callLog: callMessage.callLog,
+      createdAt: callMessage.createdAt,
+    };
     if (receiverSocketId) {
-      io.to(receiverSocketId).emit("call:incoming", { callerUser, offer });
+      io.to(receiverSocketId).emit("call:incoming", {
+        callerUser,
+        offer,
+        messageId: callMessage._id,
+      });
+      io.to(receiverSocketId).emit("newMessages", messagePayload);
     }
-  });
-  socket.on("call:answer", async ({ receiverId, answer }) => {
+  
     
+   socket.emit("newMessages", messagePayload);
+  });
+  socket.on("call:reject", async({receiverId, messageId})=> {
     const receiverSocketId = getReceiverId(receiverId);
+    const updatedMessage = await Message.findByIdAndUpdate(messageId, {
+      "callLog.callStatus" :"rejected"
+    }, {new: true})
+    if(receiverSocketId){
+      io.to(receiverSocketId).emit("call:ended");
+      io.to(receiverSocketId).emit("updatedMessage", updatedMessage)
+    }
+    socket.emit("updatedMessage", updatedMessage);
+  })
+  socket.on("call:answer", async ({ receiverId, answer, messageId }) => {
+    const receiverSocketId = getReceiverId(receiverId);
+    const updatedMessage = await Message.findByIdAndUpdate(messageId, {
+      "callLog.callStatus" : "ongoing"
+    }, {new: true})
     const acceptCallUser = await User.findById(userId).select(
       "_id fullName profilePic",
     );
     if (receiverSocketId) {
       io.to(receiverSocketId).emit("call:accepted", {
-         acceptCallUser,
+        acceptCallUser,
         answer,
+        messageId
       });
+      io.to(receiverSocketId).emit("updatedMessage", updatedMessage);
     }
+    socket.emit("updatedMessage", updatedMessage);
+
   });
-  socket.on("call:end", ({ receiverId }) => {
+  socket.on("call:end", async({ receiverId, messageId, duration }) => {
     const receiverSocketId = getReceiverId(receiverId);
+    const updatedMessage = await Message.findByIdAndUpdate(
+      messageId,
+      {
+        "callLog.callStatus": "completed",
+        "callLog.callDuration": duration,
+      },
+      { new: true },
+    );
     if (receiverSocketId) {
       io.to(receiverSocketId).emit("call:ended");
+      io.to(receiverSocketId).emit("updatedMessage", updatedMessage);
+    }
+    socket.emit("updatedMessage", updatedMessage)
+  });
+  socket.on("call:ice", ({ receiverId, candidate }) => {
+    const receiverSocketId = getReceiverId(receiverId);
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("call:ice", { senderId: userId, candidate });
     }
   });
-socket.on("call:ice", ({receiverId, candidate})=> {
-  const receiverSocketId = getReceiverId(receiverId);
-  if(receiverSocketId){
-    io.to(receiverSocketId).emit("call:ice", {senderId: userId, candidate})
-  }
-})
   socket.on("disconnect", async () => {
     delete userSocketMap[userId];
     const disconnectTime = new Date();

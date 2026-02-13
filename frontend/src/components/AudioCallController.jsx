@@ -15,6 +15,7 @@ const AudioCallController = () => {
     acceptCall,
     remoteEndCall,
     isMute,
+    callMessageId
   } = useCallStore();
 
   const pcRef = useRef(null);
@@ -92,7 +93,7 @@ const AudioCallController = () => {
         },
       });
       localStreamRef.current = stream;
-      
+
       stream.getTracks().forEach((t) => pcRef.current.addTrack(t, stream));
       const offer = await pcRef.current.createOffer();
       await pcRef.current.setLocalDescription(offer);
@@ -115,15 +116,15 @@ const AudioCallController = () => {
 
     // Receiver gets offer → UI only
 
-    socket.on("call:incoming", ({ callerUser, offer }) => {
-      incomingCall({ callerUser, offer });
+    socket.on("call:incoming", ({ callerUser, offer, messageId }) => {
+      incomingCall({ callerUser, offer, messageId });
     });
 
     // Caller receives answer
 
-    socket.on("call:accepted", async ({ answer, acceptCallUser }) => {
+    socket.on("call:accepted", async ({ answer, acceptCallUser , messageId}) => {
       acceptCall(acceptCallUser);
-
+      useCallStore.setState({ callMessageId: messageId });
       if (pcRef.current) {
         await pcRef.current.setRemoteDescription(
           new RTCSessionDescription(answer),
@@ -188,7 +189,7 @@ const AudioCallController = () => {
 
       socket.emit("call:answer", {
         receiverId: caller._id || caller,
-
+        messageId: callMessageId,
         answer,
       });
     };
@@ -251,14 +252,14 @@ const AudioCallController = () => {
 
 * -------------------------------------------------- */
   useEffect(() => {
-     if(localStreamRef.current){
-      localStreamRef.current.getAudioTracks().forEach(track=> {
-        track.enabled= !isMute
-      })
-     }
+    if (localStreamRef.current) {
+      localStreamRef.current.getAudioTracks().forEach((track) => {
+        track.enabled = !isMute;
+      });
+    }
   }, [isMute]);
 
   return null;
-};;
+};
 
 export default AudioCallController;

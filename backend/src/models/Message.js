@@ -25,7 +25,21 @@ const messageSchema = new mongoose.Schema(
         ref: "User",
       },
     ],
-    isRead: {type: Boolean, default: false}
+    isRead: {type: Boolean, default: false},
+    callLog: {
+      callType : {
+        type: String,
+        enum: ["audio", "video"]
+      },
+      callStatus: {
+        type: String,
+        enum: ["ringing", "ongoing", "missed", "completed", "rejected"]
+      },
+      callDuration: {
+        type: Number,
+        default: 0
+      }
+    }
   },
   { timestamps: true }
 );

@@ -5,7 +5,7 @@ import { useEffect, useRef } from "react";
 import { useChatStore } from "../store/useChatStore";
 import { clickSound, phoneEndCall } from "./mouseClickSound";
 const IncomingAudioCallModal = () => {
-  const { callState, caller, acceptCall,endCall } = useCallStore();
+  const { callState, caller, acceptCall, rejectCall } = useCallStore();
   const {SoundEnabled} = useChatStore();
   const incomingRingtoneRef = useRef(null);
   useEffect(()=> {
@@ -52,7 +52,7 @@ const IncomingAudioCallModal = () => {
           <button
             onClick={()=> {
               if(SoundEnabled) phoneEndCall();
-              endCall();
+              rejectCall();
             }}
             className="p-4 cursor-pointer bg-red-500 hover:bg-red-600 text-white rounded-full transition-all hover:scale-110 active:scale-95 shadow-lg"
           >

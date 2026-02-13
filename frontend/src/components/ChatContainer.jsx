@@ -13,6 +13,8 @@ import { useContextMenu } from "./useContextMenu.js";
 import { ArrowBigDown, Check, CheckCheck, Trash } from "lucide-react";
 import ConfirmationDeleteMessage from "./ConfirmationDeleteMessage.jsx";
 import { TouchScreenContextMenu } from "./TouchScreenContextMenu.js";
+import getCallIcon from "./getCallIcon.jsx";
+import { formatCallDuration, getCallStatusText } from "./audioCallHistory.js";
 const ChatContainer = () => {
   const {
     selectedUser,
@@ -248,10 +250,10 @@ const ChatContainer = () => {
                     </div>
 
                     <div
-                      className={`chat-bubble relative min-h-0 flex flex-col ${
+                      className={`chat-bubble relative  min-h-0 flex flex-col rounded-t-3xl  ${
                         authUser._id === msg.senderId
-                          ? "bg-fuchsia-100 text-fuchsia-950" // Lighter background for better contrast
-                          : "bg-fuchsia-800 text-fuchsia-50"
+                          ? "bg-fuchsia-100 text-fuchsia-950 rounded-bl-3xl" // Lighter background for better contrast
+                          : "bg-fuchsia-800 text-fuchsia-50 rounded-br-3xl"
                       } `}
                       onContextMenu={(e) => {
                         if (SoundEnabled) clickSound();
@@ -271,6 +273,43 @@ const ChatContainer = () => {
                           }}
                         />
                       )}
+                      {msg.callLog?.callStatus &&
+                        (() => {
+                          const isOutgoing = msg.senderId === authUser._id;
+                          const { callStatus, callDuration } = msg.callLog;
+
+                          return (
+                            <div className="flex items-center gap-3 px-3 py-2 rounded-3xl bg-fuchsia-200 text-fuchsia-950">
+                              {/* Call Icon */}
+                              <div className="shrink-0">
+                                {getCallIcon(callStatus, isOutgoing)}
+                              </div>
+
+                              {/* Call Details */}
+                              <div className="flex flex-col">
+                                {/* Status */}
+                                <span
+                                  className={`text-[14px] font-semibold ${
+                                    callStatus === "missed" ||
+                                    callStatus === "rejected"
+                                      ? "text-red-500"
+                                      : ""
+                                  }`}
+                                >
+                                  {getCallStatusText(callStatus, isOutgoing)}
+                                </span>
+
+                                {/* Duration ONLY when completed */}
+                                {callStatus === "completed" &&
+                                  callDuration > 0 && (
+                                    <span className="text-xs opacity-70">
+                                      {formatCallDuration(callDuration)}
+                                    </span>
+                                  )}
+                              </div>
+                            </div>
+                          );
+                        })()}
 
                       <div className="flex flex-col justify-end">
                         {msg.text && (
@@ -293,7 +332,7 @@ const ChatContainer = () => {
                               {
                                 hour: "2-digit",
                                 minute: "2-digit",
-                              }
+                              },
                             )}
                           </span>
 

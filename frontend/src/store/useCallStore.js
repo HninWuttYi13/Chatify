@@ -5,35 +5,43 @@ export const useCallStore = create((set, get) => ({
   caller: null,
   incomingOffer: null,
   callDuration: 0,
+  callMessageId: null,
+  callStartTime: null,
   timerId: null,
   isMute: false,
-  setIsMute: ()=> set((state)=> ({isMute: !state.isMute})),
-  incomingCall: ({ callerUser, offer }) => {
+  setIsMute: () => set((state) => ({ isMute: !state.isMute })),
+  incomingCall: ({ callerUser, offer, messageId }) => {
     set({
       callState: "ringing",
-      caller:callerUser,
+      caller: callerUser,
       incomingOffer: offer,
+      callMessageId: messageId,
     });
   },
   startCall: (receiverUser) => {
-    set({ callState: "calling", caller: receiverUser});
+    set({ callState: "calling", caller: receiverUser });
   },
   acceptCall: (userData) => {
-    const currentTimer = get().timerId;
-    if (currentTimer) clearInterval(currentTimer);
+    const startTime = Date.now();
     const id = setInterval(() => {
       set((state) => ({ callDuration: state.callDuration + 1 }));
     }, 1000);
-    set({ callState: "in-call", timerId: id, callDuration: 0, caller: userData});
+    set({
+      callState: "in-call",
+      timerId: id,
+      callDuration: 0,
+      caller: userData,
+      callStartTime: startTime,
+    });
   },
 
   endCall: () => {
     const socket = useAuthStore.getState().socket;
-    const { caller, timerId } = get();
+    const { caller, timerId, callMessageId, callDuration } = get();
     if (timerId) clearInterval(timerId);
     if (socket && caller) {
       const receiverId = caller._id || caller;
-      socket.emit("call:end", { receiverId });
+      socket.emit("call:end", { receiverId, messageId: callMessageId, duration: callDuration  });
     }
     set({
       callState: "idle",
@@ -41,6 +49,7 @@ export const useCallStore = create((set, get) => ({
       incomingOffer: null,
       timerId: null,
       callDuration: 0,
+      callMessageId: null
     });
   },
   remoteEndCall: () => {
@@ -52,6 +61,18 @@ export const useCallStore = create((set, get) => ({
       incomingOffer: null,
       timerId: null,
       callDuration: 0,
+      callMessageId: null
     });
   },
+  rejectCall : ()=> {
+    const socket = useAuthStore.getState().socket;
+    const {caller, callMessageId, remoteEndCall} = get();
+    if(socket && caller && callMessageId){
+      socket.emit("call:reject", {
+        receiverId: caller._id,
+        messageId: callMessageId
+      })
+    }
+    remoteEndCall()
+  }
 }));

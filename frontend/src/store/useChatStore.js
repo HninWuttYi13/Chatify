@@ -87,6 +87,7 @@ export const useChatStore = create((set, get) => ({
       receiverId: selectedUser._id,
       text: messageData.text,
       image: messageData.image,
+      callLog: messageData.callLog,
       createdAt: new Date().toISOString(),
       isOptimistic: true,
     };
@@ -129,7 +130,10 @@ export const useChatStore = create((set, get) => ({
     socket.on("newMessages", (newMessages) => {
       set((state) => {
         const isChatOpen =
-          state.selectedUser && state.selectedUser._id === newMessages.senderId;
+          state.selectedUser &&
+          (state.selectedUser._id === newMessages.senderId ||
+            state.selectedUser._id === newMessages.receiverId);
+
         if (isChatOpen) {
           return {
             messages: [...state.messages, newMessages],
@@ -166,6 +170,14 @@ export const useChatStore = create((set, get) => ({
         audio.play();
       }
     });
+    socket.on("updatedMessage", (updatedMessage) => {
+      set((state) => ({
+        messages: state.messages.map((msg) =>
+          msg._id === updatedMessage._id ? updatedMessage : msg,
+        ),
+      }));
+    });
+    
   },
   unsubscribeNewMessages: () => {
     const socket = useAuthStore.getState().socket;

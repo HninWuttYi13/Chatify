@@ -60,12 +60,14 @@ export const sendMessage = async (req, res) => {
       receiverId,
       text,
       image: imageUrl,
+  
       isRead: false,
       createdAt: new Date(),
     });
     const sender = await User.findById(senderId).select(
       "_id fullName profilePic"
     );
+    await newMessages.save();
     const socketPayload = {
       _id: newMessages._id,
       senderId: sender._id,
@@ -74,11 +76,11 @@ export const sendMessage = async (req, res) => {
       receiverId,
       text: newMessages.text,
       image: newMessages.image,
+      callLog: newMessages.callLog,
       createdAt: newMessages.createdAt,
     };
     const receiverSocketId = getReceiverId(receiverId);
     io.to(receiverSocketId).emit("newMessages", socketPayload);
-    await newMessages.save();
     return res.status(200).json(newMessages);
   } catch (error) {
     console.log("error sending message", error);
