@@ -4,34 +4,64 @@ Chatify is a full-stack real-time chat web application that allows users to comm
 
 ---
 
-## 🚀 Features
+## ✨ Features
 
-- Real-time messaging using WebSocket communication
-- Real-time audio calling functionality
-- Full-stack architecture with React frontend and Node.js backend
-- REST API for client-server communication
-- State management using Zustand
-- Deployment using Vercel (Frontend) and Render (Backend)
-- Asynchronous request handling
-- Audio calls using WebAPI
+### 💬 Real-Time Messaging
+- Instant message delivery using Socket.IO
+- Optimistic UI updates
+- Unread message tracking
+- Message history storage
+
+### 🖼 Media Sharing
+- Image upload support
+- Cloudinary cloud storage integration
+- Image preview inside chat
+
+### 📞 Audio Calling
+- Peer-to-peer audio calls using WebRTC
+- Incoming / outgoing call interface
+- Call duration tracking
+- Call history logging
+- Call status handling (missed, rejected, completed)
+
+### 🔐 Authentication & Security
+- JWT authentication
+- Protected routes
+- Secure HTTP-only cookies
+- User session management
+
+### 👤 User Experience
+- Online / offline user status
+- Profile image upload
+- Sound notification toggle
+- Modern responsive UI
+- Beautiful fuchsia-themed design
+
 ---
 
-## 🛠 Technologies Used
+## 🛠 Tech Stack
 
 ### Frontend
- - React.js
- - Tailwind CSS
- - DaisyUI
- - axios
- - Zustand
+- React.js
+- Zustand (State Management)
+- Tailwind CSS
+- Socket.IO Client
+- WebRTC
+- DaisyUI
 
 ### Backend
 - Node.js
 - Express.js
-- JavaScript
+- MongoDB + Mongoose
 - Socket.IO
-- Web API
+- JWT Authentication
 
+### Cloud & Deployment
+- Cloudinary (Media Storage)
+- Render (Backend Hosting)
+- Vercel (Frontend Hosting)
+
+---
 ### Tools
 - Git & GitHub
 - Vercel(frontend Deployment)
@@ -43,20 +73,23 @@ Chatify is a full-stack real-time chat web application that allows users to comm
 ## 🏗 Project Structure
 
 ```
-Chatify/
+chatify/
 │
-├── server/
-│   ├── routes/
-│   ├── controllers/
-│   ├── middleware/
-│   └── index.js
-│
-├── client/ 
+├── frontend/
 │   ├── components/
-│   ├── public/
-│   ├── src/
-│   └── index.html
+│   ├── store/
+│   ├── pages/
+│   └── utils/
+│
+├── backend/
+│   ├── controllers/
+│   ├── models/
+│   ├── routes/
+│   ├── socket/
+│   └── middleware/
+│
 └── README.md
+
 ```
 
 ---
